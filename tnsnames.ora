@@ -1,0 +1,20 @@
+# tnsnames.ora file for Oracle Instant Client
+# Library Management System
+
+ORCL =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SID = orcl)
+    )
+  )
+
+LibrarymanagementDB =
+  (DESCRIPTION =
+    (ADDRESS = (PROTOCOL = TCP)(HOST = localhost)(PORT = 1521))
+    (CONNECT_DATA =
+      (SERVER = DEDICATED)
+      (SERVICE_NAME = LibrarymanagementDB)
+    )
+  ) 
