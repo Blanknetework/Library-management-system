@@ -94,7 +94,7 @@ if ($stmt) {
                 <nav>
                     <ul>
                         <li class="mb-2">
-                            <a href="dashboard.php" class="block py-2 px-4 bg-blue-900 rounded">Dashboard</a>
+                            <a href="dashboard.php" class="block py-2 px-4 hover:bg-blue-700 rounded">Dashboard</a>
                         </li>
                         <li class="mb-2">
                             <a href="books.php" class="block py-2 px-4 hover:bg-blue-700 rounded">Books</a>
@@ -104,12 +104,6 @@ if ($stmt) {
                         </li>
                         <li class="mb-2">
                             <a href="room_reservation.php" class="block py-2 px-4 hover:bg-blue-700 rounded">Room Reservation</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="block py-2 px-4 hover:bg-blue-700 rounded">Usage History</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="block py-2 px-4 hover:bg-blue-700 rounded">Profile</a>
                         </li>
                         <li class="mt-8">
                             <a href="logout.php" class="block py-2 px-4 hover:bg-red-600 bg-red-700 rounded">Logout</a>
@@ -126,10 +120,12 @@ if ($stmt) {
                 <p class="text-gray-600">Here's your library dashboard.</p>
             </div>
             
-            <!-- User Info Card -->
+            <!-- User Info Card with Statistics -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-lg font-semibold mb-4 border-b pb-2">Student Information</h2>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Basic Information -->
+                    <div class="space-y-4">
                     <div>
                         <p class="text-gray-600 text-sm">Student ID</p>
                         <p class="font-medium"><?php echo htmlspecialchars($_SESSION['student_id']); ?></p>
@@ -145,6 +141,86 @@ if ($stmt) {
                     <div>
                         <p class="text-gray-600 text-sm">Section</p>
                         <p class="font-medium"><?php echo htmlspecialchars($_SESSION['section']); ?></p>
+                    </div>
+                </div>
+
+                    <!-- Usage Statistics -->
+                    <div class="space-y-4">
+                        <div>
+                            <p class="text-gray-600 text-sm">Total Books Borrowed</p>
+                            <p class="font-medium">
+                                <?php
+                                $sql = "SELECT COUNT(*) as total FROM sys.book_loans WHERE student_id = :student_id";
+                                $stmt = executeOracleQuery($sql, [':student_id' => $_SESSION['student_id']]);
+                                if ($stmt) {
+                                    $row = oci_fetch_assoc($stmt);
+                                    echo $row['TOTAL'];
+                                    closeOracleConnection($stmt);
+                                } else {
+                                    echo '0';
+                                }
+                                ?>
+                                Books
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Total PC Usage</p>
+                            <p class="font-medium">
+                                <?php
+                                $sql = "SELECT SUM(
+                                            EXTRACT(HOUR FROM (END_TIME - START_TIME)) * 60 +
+                                            EXTRACT(MINUTE FROM (END_TIME - START_TIME))
+                                        ) as total_minutes
+                                        FROM pc_use 
+                                        WHERE student_id = :student_id 
+                                        AND END_TIME IS NOT NULL";
+                                $stmt = executeOracleQuery($sql, [':student_id' => $_SESSION['student_id']]);
+                                if ($stmt) {
+                                    $row = oci_fetch_assoc($stmt);
+                                    $total_minutes = $row['TOTAL_MINUTES'] ?? 0;
+                                    echo floor($total_minutes / 60) . 'h ' . ($total_minutes % 60) . 'm';
+                                    closeOracleConnection($stmt);
+                                } else {
+                                    echo '0h 0m';
+                                }
+                                ?>
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Room Reservations</p>
+                            <p class="font-medium">
+                                <?php
+                                $sql = "SELECT COUNT(*) as total FROM room_reservation WHERE student_id = :student_id";
+                                $stmt = executeOracleQuery($sql, [':student_id' => $_SESSION['student_id']]);
+                                if ($stmt) {
+                                    $row = oci_fetch_assoc($stmt);
+                                    echo $row['TOTAL'];
+                                    closeOracleConnection($stmt);
+                                } else {
+                                    echo '0';
+                                }
+                                ?>
+
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600 text-sm">Currently Borrowed Books</p>
+                            <p class="font-medium">
+                                <?php
+                                $sql = "SELECT COUNT(*) as total FROM sys.book_loans 
+                                       WHERE student_id = :student_id AND return_date IS NULL";
+                                $stmt = executeOracleQuery($sql, [':student_id' => $_SESSION['student_id']]);
+                                if ($stmt) {
+                                    $row = oci_fetch_assoc($stmt);
+                                    echo $row['TOTAL'];
+                                    closeOracleConnection($stmt);
+                                } else {
+                                    echo '0';
+                                }
+                                ?>
+
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -236,100 +312,183 @@ if ($stmt) {
                 </div>
             </div>
             
-            <!-- Quick Actions -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-lg font-semibold mb-4 border-b pb-2">Reserve a PC</h2>
-                    <p class="text-gray-600 mb-4">Book a computer for your study or research needs.</p>
-                    <a href="pc_reservation.php" class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition">Book Now</a>
-                </div>
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-lg font-semibold mb-4 border-b pb-2">Reserve a Room</h2>
-                    <p class="text-gray-600 mb-4">Book a study room for group activities or presentations.</p>
-                    <a href="room_reservation.php" class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition">Book Now</a>
+            <!-- Usage History Section -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4 border-b pb-2">Usage History</h2>
+                
+                <!-- Books History -->
+                <div class="mb-6">
+                    <h3 class="text-md font-medium mb-3">Book Borrowing History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Book Title</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrow Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <?php
+                                // Get book borrowing history
+                                $book_history_sql = "SELECT b.title, bl.borrow_date, bl.return_date 
+                                                   FROM sys.book_loans bl 
+                                                   JOIN sys.books b ON bl.book_id = b.reference_id 
+                                                   WHERE bl.student_id = :student_id 
+                                                   ORDER BY bl.borrow_date DESC";
+                                $stmt = executeOracleQuery($book_history_sql, [':student_id' => $_SESSION['student_id']]);
+                                $has_book_history = false;
+                                
+                                if ($stmt) {
+                                    while ($row = oci_fetch_assoc($stmt)) {
+                                        $has_book_history = true;
+                                        ?>
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <?php echo htmlspecialchars($row['TITLE']); ?>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <?php echo date('Y-m-d', strtotime($row['BORROW_DATE'])); ?>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                <?php echo $row['RETURN_DATE'] ? date('Y-m-d', strtotime($row['RETURN_DATE'])) : '-'; ?>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    <?php echo $row['RETURN_DATE'] ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'; ?>">
+                                                    <?php echo $row['RETURN_DATE'] ? 'Returned' : 'Borrowed'; ?>
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <?php
+                                    }
+                                    closeOracleConnection($stmt);
+                                }
+                                
+                                if (!$has_book_history) {
+                                    echo '<tr><td colspan="4" class="px-6 py-4 text-center text-gray-500">No book borrowing history</td></tr>';
+                                }
+                                ?>
+                            </tbody>
+                        </table>
                 </div>
             </div>
             
-            <!-- Recent Activity -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4 border-b pb-2">Recent Activity</h2>
-                
-                <!-- PC Usage -->
-                <?php if (count($pc_usage) > 0): ?>
-                <div class="mb-4">
-                    <h3 class="font-medium mb-2">PC Usage</h3>
+                <!-- PC Usage History -->
+                <div class="mb-6">
+                    <h3 class="text-md font-medium mb-3">PC Usage History</h3>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="py-2 px-4 text-left">PC ID</th>
-                                    <th class="py-2 px-4 text-left">Location</th>
-                                    <th class="py-2 px-4 text-left">Start Time</th>
-                                    <th class="py-2 px-4 text-left">End Time</th>
-                                    <th class="py-2 px-4 text-left">Purpose</th>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PC ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php foreach (array_slice($pc_usage, 0, 3) as $usage): ?>
-                                <tr class="border-b">
-                                    <td class="py-2 px-4"><?php echo htmlspecialchars($usage['PC_ID']); ?></td>
-                                    <td class="py-2 px-4"><?php echo htmlspecialchars($usage['FACILITY_NAME']); ?></td>
-                                    <td class="py-2 px-4"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($usage['START_TIME']))); ?></td>
-                                    <td class="py-2 px-4"><?php echo $usage['END_TIME'] ? htmlspecialchars(date('Y-m-d H:i', strtotime($usage['END_TIME']))) : 'Active'; ?></td>
-                                    <td class="py-2 px-4"><?php echo htmlspecialchars($usage['PURPOSE']); ?></td>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <?php if (!empty($pc_usage)): ?>
+                                    <?php foreach ($pc_usage as $usage): ?>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php echo htmlspecialchars($usage['PC_ID']); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php echo date('Y-m-d H:i', strtotime($usage['START_TIME'])); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php echo $usage['END_TIME'] ? date('Y-m-d H:i', strtotime($usage['END_TIME'])) : 'Active'; ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php 
+                                            if ($usage['END_TIME']) {
+                                                $start = new DateTime($usage['START_TIME']);
+                                                $end = new DateTime($usage['END_TIME']);
+                                                $diff = $start->diff($end);
+                                                echo $diff->format('%H:%I');
+                                            } else {
+                                                echo 'Active';
+                                            }
+                                            ?>
+                                        </td>
                                 </tr>
                                 <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-4 text-center text-gray-500">No PC usage history</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-                    <?php if (count($pc_usage) > 3): ?>
-                    <div class="mt-2 text-right">
-                        <a href="#" class="text-blue-600 hover:underline text-sm">View All</a>
-                    </div>
-                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
                 
-                <!-- Room Reservations -->
-                <?php if (count($room_reservations) > 0): ?>
+                <!-- Room Reservation History -->
                 <div>
-                    <h3 class="font-medium mb-2">Room Reservations</h3>
+                    <h3 class="text-md font-medium mb-3">Room Reservation History</h3>
                     <div class="overflow-x-auto">
-                        <table class="min-w-full bg-white">
-                            <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="py-2 px-4 text-left">Room</th>
-                                    <th class="py-2 px-4 text-left">Start Time</th>
-                                    <th class="py-2 px-4 text-left">End Time</th>
-                                    <th class="py-2 px-4 text-left">Purpose</th>
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <?php foreach (array_slice($room_reservations, 0, 3) as $reservation): ?>
-                                <tr class="border-b">
-                                    <td class="py-2 px-4"><?php echo htmlspecialchars($reservation['ROOM_NAME']); ?></td>
-                                    <td class="py-2 px-4"><?php echo htmlspecialchars(date('Y-m-d H:i', strtotime($reservation['START_TIME']))); ?></td>
-                                    <td class="py-2 px-4"><?php echo $reservation['END_TIME'] ? htmlspecialchars(date('Y-m-d H:i', strtotime($reservation['END_TIME']))) : 'Active'; ?></td>
-                                    <td class="py-2 px-4"><?php echo htmlspecialchars($reservation['PURPOSE']); ?></td>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <?php if (!empty($room_reservations)): ?>
+                                    <?php foreach ($room_reservations as $reservation): ?>
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php echo htmlspecialchars($reservation['ROOM_NAME']); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php echo date('Y-m-d', strtotime($reservation['START_TIME'])); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php echo date('H:i', strtotime($reservation['START_TIME'])); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                            <?php echo date('H:i', strtotime($reservation['END_TIME'])); ?>
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap">
+                                            <?php 
+                                            $now = new DateTime();
+                                            $start = new DateTime($reservation['START_TIME']);
+                                            $end = new DateTime($reservation['END_TIME']);
+                                            
+                                            if ($now < $start) {
+                                                $status = 'Upcoming';
+                                                $statusClass = 'bg-blue-100 text-blue-800';
+                                            } elseif ($now > $end) {
+                                                $status = 'Completed';
+                                                $statusClass = 'bg-green-100 text-green-800';
+                                            } else {
+                                                $status = 'Active';
+                                                $statusClass = 'bg-yellow-100 text-yellow-800';
+                                            }
+                                            ?>
+                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $statusClass; ?>">
+                                                <?php echo $status; ?>
+                                            </span>
+                                        </td>
                                 </tr>
                                 <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">No room reservation history</td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
-                    <?php if (count($room_reservations) > 3): ?>
-                    <div class="mt-2 text-right">
-                        <a href="#" class="text-blue-600 hover:underline text-sm">View All</a>
-                    </div>
-                    <?php endif; ?>
                 </div>
-                <?php endif; ?>
-                
-                <?php if (count($pc_usage) === 0 && count($room_reservations) === 0): ?>
-                <p class="text-gray-600">No recent activity to display.</p>
-                <?php endif; ?>
             </div>
-        </div>
-    </div>
+
 
     <!-- Add this JavaScript at the bottom of the file, before </body> -->
     <script>
@@ -359,6 +518,11 @@ if ($stmt) {
             console.error('Error:', error);
             alert('An error occurred. Please try again.');
         }
+    }
+
+    function toggleEditMode() {
+        // Implement profile editing functionality if needed
+        alert('Profile editing will be implemented in a future update.');
     }
     </script>
 </body>

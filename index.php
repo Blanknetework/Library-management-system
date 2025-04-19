@@ -26,7 +26,7 @@ if (isset($_SESSION['login_errors'])) {
 
 
 <div class="flex h-screen overflow-hidden">
-     <div class="w-[60%] bg-gradient-to-br from-blue-400 to-blue-800 text-white p-10 flex flex-col justify-center items-center">
+     <div class="w-[50%] bg-gradient-to-br from-blue-400 to-blue-800 text-white p-10 flex flex-col justify-center items-center">
             <div class="max-w-2xl mx-auto text-center">
                 <img src="assets/images/QCU_Logo_2019.png" alt="QCU Logo" class="w-24 h-24 mx-auto mb-4">
                 <h1 class="text-3xl font-bold mb-4">QCU Library</h1>
@@ -40,7 +40,7 @@ if (isset($_SESSION['login_errors'])) {
         </div>
         
         <!-- Right Panel - Login form -->
-        <div class="w-full md:w-[40%] bg-white p-6 flex items-center justify-center">
+        <div class="w-full md:w-[50%] bg-white p-6 flex items-center justify-center">
             <div class="w-full max-w-sm">
                 <div class="text-center mb-6">
                     <h2 class="text-sm font-medium uppercase">WELCOME TO</h2>
@@ -65,7 +65,7 @@ if (isset($_SESSION['login_errors'])) {
                 <form id="studentIdForm" class="space-y-6" @submit.prevent="checkStudent">
                     <div>
                         <label for="student_id" class="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
-                        <input type="text" id="student_id" x-ref="studentIdInput" name="student_id" 
+                        <input type="text" id="student_id" x-ref="studentIdInput" autocomplete="off" name="student_id" 
                                class="w-full px-4 py-3 text-lg border border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                                placeholder="Enter your student ID"
                                required>

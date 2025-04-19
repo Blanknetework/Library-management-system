@@ -12,18 +12,54 @@ if (!isset($_SESSION['logged_in']) || $_SESSION['logged_in'] !== true) {
 // Include database configuration
 require_once 'config.php';
 
-// Get available library rooms
-$library_rooms = [];
-$sql = "SELECT lr.*, f.facility_name 
-        FROM library_rooms lr 
-        JOIN facilities f ON lr.facility_id = f.facility_id 
-        ORDER BY lr.room_name";
-$stmt = executeOracleQuery($sql);
+// Define the rooms
+$rooms = [
+    1 => 'Discussion Room 1',
+    2 => 'Study Room 1',
+    3 => 'Conference Room',
+    4 => 'Multimedia Room'
+];
+
+// Get currently reserved rooms
+$in_use_sql = "SELECT room_id, 
+               TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time, 
+               TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as end_time 
+               FROM room_reservation 
+               WHERE end_time > CURRENT_TIMESTAMP";
+$stmt = executeOracleQuery($in_use_sql);
+$in_use_rooms = [];
 if ($stmt) {
     while ($row = oci_fetch_assoc($stmt)) {
-        $library_rooms[] = $row;
+        $in_use_rooms[$row['ROOM_ID']] = [
+            'start_time' => $row['START_TIME'],
+            'end_time' => $row['END_TIME']
+        ];
     }
     closeOracleConnection($stmt);
+}
+
+// Create array of all rooms with their status
+$room_status = [];
+foreach ($rooms as $id => $name) {
+    $status = 'Available';
+    $time_info = '';
+    
+    if (isset($in_use_rooms[$id])) {
+        $status = 'Occupied';
+        try {
+            $end = new DateTime($in_use_rooms[$id]['end_time']);
+            $time_info = ' until ' . $end->format('H:i');
+        } catch (Exception $e) {
+            $time_info = '';
+        }
+    }
+    
+    $room_status[] = [
+        'ROOM_ID' => $id,
+        'ROOM_NAME' => $name,
+        'STATUS' => $status,
+        'TIME_INFO' => $time_info
+    ];
 }
 
 // Process form submission
@@ -99,12 +135,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <li class="mb-2">
                             <a href="room_reservation.php" class="block py-2 px-4 bg-blue-900 rounded">Room Reservation</a>
                         </li>
-                        <li class="mb-2">
-                            <a href="#" class="block py-2 px-4 hover:bg-blue-700 rounded">Usage History</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="block py-2 px-4 hover:bg-blue-700 rounded">Profile</a>
-                        </li>
+                        
                         <li class="mt-8">
                             <a href="logout.php" class="block py-2 px-4 hover:bg-red-600 bg-red-700 rounded">Logout</a>
                         </li>
@@ -112,58 +143,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </nav>
             </div>
         </div>
-        
+       
+
         <!-- Main Content -->
         <div class="flex-1 p-10 overflow-y-auto">
             <div class="mb-8">
                 <h1 class="text-2xl font-bold mb-2">Reserve a Room</h1>
                 <p class="text-gray-600">Book a study room for group activities or presentations.</p>
             </div>
-            
-            <!-- Success/Error Messages -->
-            <?php if (!empty($success_message)): ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6">
-                <?php echo htmlspecialchars($success_message); ?>
+
+      
+            <!-- Notifications -->
+            <?php if (isset($_SESSION['success_message'])): ?>
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
+                <span class="block sm:inline"><?php echo htmlspecialchars($_SESSION['success_message']); ?></span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                    <svg onclick="this.parentElement.parentElement.style.display='none'" class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                    </svg>
+                </span>
             </div>
+            <?php unset($_SESSION['success_message']); ?>
             <?php endif; ?>
-            
-            <?php if (!empty($error_message)): ?>
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6">
-                <?php echo htmlspecialchars($error_message); ?>
+
+            <?php if (isset($_SESSION['error_message'])): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+                <span class="block sm:inline"><?php echo htmlspecialchars($_SESSION['error_message']); ?></span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                    <svg onclick="this.parentElement.parentElement.style.display='none'" class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <title>Close</title>
+                        <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+                    </svg>
+                </span>
             </div>
+            <?php unset($_SESSION['error_message']); ?>
             <?php endif; ?>
+
+
             
-            <!-- Reservation Form -->
+
+            <!-- Room Reservation Form -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4 border-b pb-2">Room Reservation Form</h2>
-                
-                <form action="room_reservation.php" method="post">
+                <h2 class="text-lg font-semibold mb-4">Reserve a Room</h2>
+                <form action="process/process_room_reservation.php" method="POST" onsubmit="return validateForm()">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label for="room_id" class="block text-sm font-medium text-gray-700 mb-1">Select Room</label>
-                            <select id="room_id" name="room_id" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                                <option value="">-- Select a Room --</option>
-                                <?php foreach ($library_rooms as $room): ?>
-                                <option value="<?php echo htmlspecialchars($room['ROOM_ID']); ?>">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="room_id">
+                                Select Room
+                            </label>
+                            <select name="room_id" id="room_id" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select a room...</option>
+                                <?php foreach ($room_status as $room): ?>
+                                <option value="<?php echo $room['ROOM_ID']; ?>" 
+                                        <?php echo $room['STATUS'] === 'Occupied' ? 'disabled' : ''; ?>>
                                     <?php echo htmlspecialchars($room['ROOM_NAME']); ?> 
-                                    (Capacity: <?php echo htmlspecialchars($room['CAPACITY']); ?>)
+                                    (<?php echo $room['STATUS'] . $room['TIME_INFO']; ?>)
                                 </option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        
+
                         <div>
-                            <label for="purpose" class="block text-sm font-medium text-gray-700 mb-1">Purpose</label>
-                            <select id="purpose" name="purpose" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                                <option value="">-- Select Purpose --</option>
+                            <label class="block text-sm font-medium text-gray-700 mb-2" for="purpose">
+                                Purpose
+                            </label>
+                            <select name="purpose" id="purpose" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <option value="">Select purpose...</option>
                                 <option value="Group Study">Group Study</option>
-                                <option value="Presentation">Presentation</option>
+                                <option value="Individual Study">Individual Study</option>
                                 <option value="Meeting">Meeting</option>
-                                <option value="Workshop">Workshop</option>
+                                <option value="Project Work">Project Work</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
-                        
+
                         <div>
                             <label for="start_time" class="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
                             <input type="datetime-local" id="start_time" name="start_time" 
@@ -177,35 +231,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                    class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" 
                                    required>
                         </div>
-                        
-                        <div class="md:col-span-2">
-                            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded transition">
-                                Reserve Room
-                            </button>
-                        </div>
+                    </div>
+
+                    <div class="mt-6">
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Reserve Room
+                        </button>
                     </div>
                 </form>
             </div>
-            
-            <!-- Available Rooms -->
+
+            <!-- Room Status Display -->
             <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-lg font-semibold mb-4 border-b pb-2">Available Rooms</h2>
+                <h2 class="text-lg font-semibold mb-4 border-b pb-2">Room Status Overview</h2>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <?php foreach ($library_rooms as $room): ?>
-                    <div class="border rounded-lg p-4 hover:bg-blue-50 transition cursor-pointer" 
-                         onclick="selectRoom('<?php echo htmlspecialchars($room['ROOM_ID']); ?>')">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <?php foreach ($room_status as $room): ?>
+                    <div class="border rounded-lg p-4 <?php echo $room['STATUS'] === 'Available' ? 'bg-green-50' : 'bg-red-50'; ?>">
                         <h3 class="font-medium"><?php echo htmlspecialchars($room['ROOM_NAME']); ?></h3>
-                        <p class="text-sm text-gray-600">
-                            Capacity: <?php echo htmlspecialchars($room['CAPACITY']); ?> people
-                        </p>
-                        <div class="mt-2 flex justify-between items-center">
-                            <span class="inline-block bg-green-100 text-green-800 px-2 py-1 text-xs rounded-full">
-                                Available
+                        <div class="mt-2">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                <?php echo $room['STATUS'] === 'Available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                <?php echo htmlspecialchars($room['STATUS']); ?>
                             </span>
-                            <button class="text-blue-600 hover:text-blue-800 text-sm">
-                                Select
-                            </button>
+                            <?php if ($room['TIME_INFO']): ?>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <?php echo htmlspecialchars($room['TIME_INFO']); ?>
+                            </p>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -213,13 +266,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </div>
     </div>
-    
+
     <script>
-        function selectRoom(roomId) {
-            document.getElementById('room_id').value = roomId;
-            // Scroll to the form
-            document.querySelector('.bg-white.rounded-lg').scrollIntoView({ behavior: 'smooth' });
+    function validateForm() {
+        const startTime = new Date(document.getElementById('start_time').value);
+        const endTime = new Date(document.getElementById('end_time').value);
+        const now = new Date();
+
+        if (startTime < now) {
+            alert('Start time must be in the future');
+            return false;
         }
+
+        if (endTime <= startTime) {
+            alert('End time must be after start time');
+            return false;
+        }
+
+        const duration = (endTime - startTime) / (1000 * 60 * 60); // Duration in hours
+        if (duration > 4) {
+            alert('Maximum reservation duration is 4 hours');
+            return false;
+        }
+
+        return true;
+    }
+
+    // Set min datetime to current time
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const nowString = now.toISOString().slice(0, 16);
+    document.getElementById('start_time').min = nowString;
+    document.getElementById('end_time').min = nowString;
     </script>
 </body>
 </html> 

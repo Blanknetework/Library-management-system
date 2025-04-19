@@ -86,12 +86,7 @@ oci_close($conn);
                         <li class="mb-2">
                             <a href="room_reservation.php" class="block py-2 px-4 hover:bg-blue-700 rounded">Room Reservation</a>
                         </li>
-                        <li class="mb-2">
-                            <a href="#" class="block py-2 px-4 hover:bg-blue-700 rounded">Usage History</a>
-                        </li>
-                        <li class="mb-2">
-                            <a href="#" class="block py-2 px-4 hover:bg-blue-700 rounded">Profile</a>
-                        </li>
+                        
                         <li class="mt-8">
                             <a href="logout.php" class="block py-2 px-4 hover:bg-red-600 bg-red-700 rounded">Logout</a>
                         </li>
