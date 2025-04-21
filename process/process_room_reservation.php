@@ -1,72 +1,199 @@
 <?php
-session_start();
+// Prevent any output before JSON response
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', 'php_errors.log');
+
+// Start output buffering to catch any unwanted output
+ob_start();
+
 require_once '../config.php';
 
-if (!isset($_SESSION['logged_in']) || !$_SESSION['logged_in']) {
-    header("Location: ../index.php");
-    exit();
-}
+// Clear any output that might have occurred during config include
+ob_clean();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $room_id = $_POST['room_id'];
-    $student_id = $_SESSION['student_id'];
-    $start_time = $_POST['start_time'];
-    $end_time = $_POST['end_time'];
-    $purpose = $_POST['purpose'];
+header('Content-Type: application/json');
 
-    // Check if room is already reserved for the given time period
-    $check_sql = "SELECT COUNT(*) as count FROM room_reservation 
-                  WHERE room_id = :room_id 
-                  AND end_time > TO_TIMESTAMP(:start_time, 'YYYY-MM-DD\"T\"HH24:MI')
-                  AND start_time < TO_TIMESTAMP(:end_time, 'YYYY-MM-DD\"T\"HH24:MI')";
+try {
+    // Get and decode JSON input
+    $json = file_get_contents('php://input');
+    error_log("Received JSON input: " . $json);
     
-    $check_params = [
-        ':room_id' => $room_id,
+    $data = json_decode($json, true);
+    if (!$data) {
+        throw new Exception('Invalid JSON data received');
+    }
+
+    // Validate required fields
+    if (empty($data['room_id']) || empty($data['student_id']) || 
+        empty($data['purpose']) || empty($data['start_time']) || empty($data['end_time'])) {
+        throw new Exception('Missing required fields');
+    }
+
+    // Set timezone to match Oracle
+    date_default_timezone_set('Asia/Manila');
+    
+    error_log("Processing room reservation request: " . print_r($data, true));
+    
+    // Get current date and time from Oracle
+    $time_sql = "SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL";
+    
+    $time_stmt = executeOracleQuery($time_sql);
+    if (!$time_stmt) {
+        throw new Exception('Failed to execute time query');
+    }
+    
+    $time_row = oci_fetch_assoc($time_stmt);
+    if (!$time_row) {
+        throw new Exception('Failed to fetch time data');
+    }
+    
+    $current_date = $time_row['CURRENT_DATE'];
+    error_log("Current date from Oracle: " . $current_date);
+    error_log("Start time from request: " . $data['start_time']);
+    error_log("End time from request: " . $data['end_time']);
+    
+    // Parse start and end times
+    $start_time = $current_date . ' ' . $data['start_time'];
+    $end_time = $current_date . ' ' . $data['end_time'];
+    
+    error_log("Combined start time: " . $start_time);
+    error_log("Combined end time: " . $end_time);
+    
+    // Check if room is already in use for the requested time period
+    $check_sql = "WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )";
+
+    error_log("Executing check query with params - Room ID: {$data['room_id']}, Start: $start_time, End: $end_time");
+    
+    $check_stmt = executeOracleQuery($check_sql, [
+        ':room_id' => $data['room_id'],
         ':start_time' => $start_time,
         ':end_time' => $end_time
-    ];
-
-    $stmt = executeOracleQuery($check_sql, $check_params);
-    $row = oci_fetch_assoc($stmt);
+    ]);
     
+    if (!$check_stmt) {
+        throw new Exception('Failed to check room availability');
+    }
+    
+    $row = oci_fetch_assoc($check_stmt);
     if ($row['COUNT'] > 0) {
-        $_SESSION['error_message'] = "This room is already reserved for this time period.";
-        header("Location: room_reservation.php?error=occupied");
-        exit();
+        throw new Exception('Room is already reserved for this time period');
     }
 
-    // Get max reservation_id and add 1
-    $max_sql = "SELECT NVL(MAX(reservation_id), 0) + 1 FROM room_reservation";
-    $stmt = executeOracleQuery($max_sql);
-    $row = oci_fetch_array($stmt);
-    $reservation_id = $row[0];
+    // Insert the reservation
+    $insert_sql = "INSERT INTO room_reservation (
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )";
 
-    // Insert reservation
-    $sql = "INSERT INTO room_reservation (reservation_id, room_id, student_id, start_time, end_time, purpose) 
-            VALUES (:reservation_id, :room_id, :student_id, 
-                    TO_TIMESTAMP(:start_time, 'YYYY-MM-DD\"T\"HH24:MI'), 
-                    TO_TIMESTAMP(:end_time, 'YYYY-MM-DD\"T\"HH24:MI'),
-                    :purpose)";
+    error_log("Executing insert query with params: " . print_r([
+        'room_id' => $data['room_id'],
+        'student_id' => $data['student_id'],
+        'start_time' => $start_time,
+        'end_time' => $end_time,
+        'purpose' => $data['purpose']
+    ], true));
 
-    $params = [
-        ':reservation_id' => $reservation_id,
-        ':room_id' => $room_id,
-        ':student_id' => $student_id,
+    $insert_stmt = executeOracleQuery($insert_sql, [
+        ':room_id' => $data['room_id'],
+        ':student_id' => $data['student_id'],
         ':start_time' => $start_time,
         ':end_time' => $end_time,
-        ':purpose' => $purpose
-    ];
-
-    $stmt = executeOracleQuery($sql, $params);
+        ':purpose' => $data['purpose']
+    ]);
     
-    if ($stmt) {
-        $_SESSION['success_message'] = "You have successfully reserved the room.";
-        header("Location: ../room_reservation.php?success=1");
-        exit();
-    } else {
-        $_SESSION['error_message'] = "Failed to reserve room. Please try again.";
-        header("Location: ../room_reservation.php?error=1");
-        exit();
+    if (!$insert_stmt) {
+        throw new Exception('Failed to insert reservation');
     }
+
+    // Get the stored times
+    $select_sql = "SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE room_id = :room_id 
+                   AND student_id = :student_id 
+                   AND start_time = CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP)
+                   AND end_time = CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP)";
+
+    $select_stmt = executeOracleQuery($select_sql, [
+        ':room_id' => $data['room_id'],
+        ':student_id' => $data['student_id'],
+        ':start_time' => $start_time,
+        ':end_time' => $end_time
+    ]);
+
+    if (!$select_stmt) {
+        throw new Exception('Failed to fetch stored times');
+    }
+
+    $row = oci_fetch_assoc($select_stmt);
+    if (!$row) {
+        throw new Exception('Failed to retrieve stored reservation times');
+    }
+
+    // Prepare success response with stored times
+    $response = [
+        'success' => true,
+        'message' => 'Room reservation successful',
+        'data' => [
+            'stored_start_time' => $row['STORED_START_TIME'],
+            'stored_end_time' => $row['STORED_END_TIME']
+        ]
+    ];
+    
+    // Log the successful reservation
+    error_log("Room reservation successful: Room {$data['room_id']} reserved from {$row['STORED_START_TIME']} to {$row['STORED_END_TIME']}");
+    
+    // Clear any buffered output before sending JSON
+    ob_clean();
+    
+    echo json_encode($response);
+
+} catch (Exception $e) {
+    error_log("Error in process_room_reservation.php: " . $e->getMessage());
+    error_log("Stack trace: " . $e->getTraceAsString());
+    
+    // Clear any buffered output before sending error JSON
+    ob_clean();
+    
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
+} finally {
+    // Free statements
+    if (isset($time_stmt)) oci_free_statement($time_stmt);
+    if (isset($check_stmt)) oci_free_statement($check_stmt);
+    if (isset($insert_stmt)) oci_free_statement($insert_stmt);
+    if (isset($select_stmt)) oci_free_statement($select_stmt);
+    
+    // End output buffering
+    ob_end_flush();
 }
-?>
+?> 

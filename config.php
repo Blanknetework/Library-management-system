@@ -51,14 +51,12 @@ function executeOracleQuery($sql, $params = []) {
         return false;
     }
 
-    // Log the SQL and parameters
     error_log("Executing SQL: " . $sql);
     foreach ($params as $key => $value) {
         error_log("Binding parameter $key: " . $value);
         oci_bind_by_name($stmt, $key, $params[$key]);
     }
 
-    // Add commit mode for inserts/updates
     $result = oci_execute($stmt, OCI_COMMIT_ON_SUCCESS);
     if (!$result) {
         $e = oci_error($stmt);

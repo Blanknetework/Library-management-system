@@ -1,0 +1,595 @@
+[22-Apr-2025 03:23:02 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 59
+[22-Apr-2025 03:23:02 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:59
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(59): oci_parse(NULL, 'SELECT COUNT(*)...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 59
+[22-Apr-2025 03:24:40 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:24:40 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:38
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(38): oci_parse(NULL, 'SELECT SYSTIMES...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:25:24 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:25:24 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:38
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(38): oci_parse(NULL, 'SELECT SYSTIMES...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:27:20 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:27:20 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:38
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(38): oci_parse(NULL, 'SELECT TO_CHAR(...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:27:43 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:27:43 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:38
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(38): oci_parse(NULL, 'SELECT TO_CHAR(...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 38
+[22-Apr-2025 03:29:13 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 44
+[22-Apr-2025 03:29:13 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:44
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(44): oci_parse(NULL, 'SELECT \r\n      ...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 44
+[22-Apr-2025 03:31:40 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2429
+    [purpose] => team_meeting
+    [start_time] => 03:31
+    [end_time] => 05:31
+)
+
+[22-Apr-2025 03:31:40 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:31:40 Asia/Manila] Current date from Oracle: 2025-04-22
+[22-Apr-2025 03:31:40 Asia/Manila] Start time from request: 03:31
+[22-Apr-2025 03:31:40 Asia/Manila] End time from request: 05:31
+[22-Apr-2025 03:31:40 Asia/Manila] Combined start time: 2025-04-22 03:31
+[22-Apr-2025 03:31:40 Asia/Manila] Combined end time: 2025-04-22 05:31
+[22-Apr-2025 03:31:40 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-04-22 03:31, End: 2025-04-22 05:31
+[22-Apr-2025 03:31:40 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[22-Apr-2025 03:31:40 Asia/Manila] Binding parameter :room_id: 2
+[22-Apr-2025 03:31:40 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:31
+[22-Apr-2025 03:31:40 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:31
+[22-Apr-2025 03:31:40 Asia/Manila] Executing insert query with params: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2429
+    [start_time] => 2025-04-22 03:31
+    [end_time] => 2025-04-22 05:31
+    [purpose] => team_meeting
+)
+
+[22-Apr-2025 03:31:40 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 157
+[22-Apr-2025 03:31:40 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:157
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(157): oci_parse(NULL, 'INSERT INTO roo...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 157
+[22-Apr-2025 03:33:56 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2429
+    [purpose] => team_meeting
+    [start_time] => 03:33
+    [end_time] => 05:33
+)
+
+[22-Apr-2025 03:33:56 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:33:56 Asia/Manila] Current date from Oracle: 2025-04-22
+[22-Apr-2025 03:33:56 Asia/Manila] Start time from request: 03:33
+[22-Apr-2025 03:33:56 Asia/Manila] End time from request: 05:33
+[22-Apr-2025 03:33:56 Asia/Manila] Combined start time: 2025-04-22 03:33
+[22-Apr-2025 03:33:56 Asia/Manila] Combined end time: 2025-04-22 05:33
+[22-Apr-2025 03:33:56 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-04-22 03:33, End: 2025-04-22 05:33
+[22-Apr-2025 03:33:56 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[22-Apr-2025 03:33:56 Asia/Manila] Binding parameter :room_id: 1
+[22-Apr-2025 03:33:56 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:33
+[22-Apr-2025 03:33:56 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:33
+[22-Apr-2025 03:33:56 Asia/Manila] Executing insert query with params: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2429
+    [start_time] => 2025-04-22 03:33
+    [end_time] => 2025-04-22 05:33
+    [purpose] => team_meeting
+)
+
+[22-Apr-2025 03:33:56 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 154
+[22-Apr-2025 03:33:56 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:154
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(154): oci_parse(NULL, 'INSERT INTO roo...')
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 154
+[22-Apr-2025 03:35:41 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2450
+    [purpose] => team_meeting
+    [start_time] => 15:35
+    [end_time] => 17:35
+)
+
+[22-Apr-2025 03:35:41 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:35:41 Asia/Manila] Current date from Oracle: 2025-04-22
+[22-Apr-2025 03:35:41 Asia/Manila] Start time from request: 15:35
+[22-Apr-2025 03:35:41 Asia/Manila] End time from request: 17:35
+[22-Apr-2025 03:35:41 Asia/Manila] Combined start time: 2025-04-22 15:35
+[22-Apr-2025 03:35:41 Asia/Manila] Combined end time: 2025-04-22 17:35
+[22-Apr-2025 03:35:41 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-04-22 15:35, End: 2025-04-22 17:35
+[22-Apr-2025 03:35:41 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :room_id: 1
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :start_time: 2025-04-22 15:35
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :end_time: 2025-04-22 17:35
+[22-Apr-2025 03:35:41 Asia/Manila] Executing insert query with params: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2450
+    [start_time] => 2025-04-22 15:35
+    [end_time] => 2025-04-22 17:35
+    [purpose] => team_meeting
+)
+
+[22-Apr-2025 03:35:41 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :room_id: 1
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :student_id: 23-2450
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :start_time: 2025-04-22 15:35
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :end_time: 2025-04-22 17:35
+[22-Apr-2025 03:35:41 Asia/Manila] Binding parameter :purpose: team_meeting
+[22-Apr-2025 03:35:42 Asia/Manila] PHP Warning:  oci_execute(): ORA-01400: cannot insert NULL into (&quot;SYS&quot;.&quot;ROOM_RESERVATION&quot;.&quot;RESERVATION_ID&quot;) in C:\xampp\htdocs\LibraryManagementSystem\config.php on line 62
+[22-Apr-2025 03:35:42 Asia/Manila] Oracle Execute Error: ORA-01400: cannot insert NULL into ("SYS"."ROOM_RESERVATION"."RESERVATION_ID")
+[22-Apr-2025 03:35:42 Asia/Manila] Failed SQL: INSERT INTO room_reservation (
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:35:42 Asia/Manila] Parameters: Array
+(
+    [:room_id] => 1
+    [:student_id] => 23-2450
+    [:start_time] => 2025-04-22 15:35
+    [:end_time] => 2025-04-22 17:35
+    [:purpose] => team_meeting
+)
+
+[22-Apr-2025 03:35:42 Asia/Manila] Error in process_room_reservation.php: Failed to insert reservation: 
+[22-Apr-2025 03:35:42 Asia/Manila] Stack trace: #0 {main}
+[22-Apr-2025 03:35:42 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_free_statement(): Argument #1 ($statement) must be of type resource, bool given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:233
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(233): oci_free_statement(false)
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 233
+[22-Apr-2025 03:38:04 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2429
+    [purpose] => group_study
+    [start_time] => 03:38
+    [end_time] => 05:38
+)
+
+[22-Apr-2025 03:38:04 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:38:04 Asia/Manila] Current date from Oracle: 2025-04-22
+[22-Apr-2025 03:38:04 Asia/Manila] Start time from request: 03:38
+[22-Apr-2025 03:38:04 Asia/Manila] End time from request: 05:38
+[22-Apr-2025 03:38:04 Asia/Manila] Combined start time: 2025-04-22 03:38
+[22-Apr-2025 03:38:04 Asia/Manila] Combined end time: 2025-04-22 05:38
+[22-Apr-2025 03:38:04 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-04-22 03:38, End: 2025-04-22 05:38
+[22-Apr-2025 03:38:04 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :room_id: 2
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:38
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:38
+[22-Apr-2025 03:38:04 Asia/Manila] Executing insert query with params: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2429
+    [start_time] => 2025-04-22 03:38
+    [end_time] => 2025-04-22 05:38
+    [purpose] => group_study
+)
+
+[22-Apr-2025 03:38:04 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :room_id: 2
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :student_id: 23-2429
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:38
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:38
+[22-Apr-2025 03:38:04 Asia/Manila] Binding parameter :purpose: group_study
+[22-Apr-2025 03:38:04 Asia/Manila] PHP Warning:  oci_execute(): ORA-01400: cannot insert NULL into (&quot;SYS&quot;.&quot;ROOM_RESERVATION&quot;.&quot;RESERVATION_ID&quot;) in C:\xampp\htdocs\LibraryManagementSystem\config.php on line 62
+[22-Apr-2025 03:38:04 Asia/Manila] Oracle Execute Error: ORA-01400: cannot insert NULL into ("SYS"."ROOM_RESERVATION"."RESERVATION_ID")
+[22-Apr-2025 03:38:04 Asia/Manila] Failed SQL: INSERT INTO room_reservation (
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:38:04 Asia/Manila] Parameters: Array
+(
+    [:room_id] => 2
+    [:student_id] => 23-2429
+    [:start_time] => 2025-04-22 03:38
+    [:end_time] => 2025-04-22 05:38
+    [:purpose] => group_study
+)
+
+[22-Apr-2025 03:38:04 Asia/Manila] Error in process_room_reservation.php: Failed to insert reservation: 
+[22-Apr-2025 03:38:04 Asia/Manila] Stack trace: #0 {main}
+[22-Apr-2025 03:38:04 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_free_statement(): Argument #1 ($statement) must be of type resource, bool given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:233
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(233): oci_free_statement(false)
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 233
+[21-Apr-2025 21:39:34 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2429","purpose":"group_study","start_time":"03:39","end_time":"05:39"}
+[22-Apr-2025 03:39:34 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2429
+    [purpose] => group_study
+    [start_time] => 03:39
+    [end_time] => 05:39
+)
+
+[22-Apr-2025 03:39:34 Asia/Manila] PHP Warning:  Undefined variable $conn in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 78
+[22-Apr-2025 03:39:34 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:39:34 Asia/Manila] With bindings: Array
+(
+)
+
+[22-Apr-2025 03:39:34 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_parse(): Argument #1 ($connection) must be of type resource, null given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:22
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(22): oci_parse(NULL, 'SELECT \r\n      ...')
+#1 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(78): executeOracleQueryLocal(NULL, 'SELECT \r\n      ...')
+#2 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 22
+[21-Apr-2025 21:41:09 Europe/Berlin] Received JSON input: {"room_id":"3","student_id":"23-2429","purpose":"team_meeting","start_time":"03:41","end_time":"05:41"}
+[22-Apr-2025 03:41:09 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 3
+    [student_id] => 23-2429
+    [purpose] => team_meeting
+    [start_time] => 03:41
+    [end_time] => 05:41
+)
+
+[22-Apr-2025 03:41:09 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:41:09 Asia/Manila] Current date from Oracle: 2025-04-22
+[22-Apr-2025 03:41:09 Asia/Manila] Start time from request: 03:41
+[22-Apr-2025 03:41:09 Asia/Manila] End time from request: 05:41
+[22-Apr-2025 03:41:09 Asia/Manila] Combined start time: 2025-04-22 03:41
+[22-Apr-2025 03:41:09 Asia/Manila] Combined end time: 2025-04-22 05:41
+[22-Apr-2025 03:41:09 Asia/Manila] Executing check query with params - Room ID: 3, Start: 2025-04-22 03:41, End: 2025-04-22 05:41
+[22-Apr-2025 03:41:09 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :room_id: 3
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:41
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:41
+[22-Apr-2025 03:41:09 Asia/Manila] Executing insert query with params: Array
+(
+    [room_id] => 3
+    [student_id] => 23-2429
+    [start_time] => 2025-04-22 03:41
+    [end_time] => 2025-04-22 05:41
+    [purpose] => team_meeting
+)
+
+[22-Apr-2025 03:41:09 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :room_id: 3
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :student_id: 23-2429
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:41
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:41
+[22-Apr-2025 03:41:09 Asia/Manila] Binding parameter :purpose: team_meeting
+[22-Apr-2025 03:41:09 Asia/Manila] PHP Warning:  oci_execute(): ORA-01400: cannot insert NULL into (&quot;SYS&quot;.&quot;ROOM_RESERVATION&quot;.&quot;RESERVATION_ID&quot;) in C:\xampp\htdocs\LibraryManagementSystem\config.php on line 62
+[22-Apr-2025 03:41:09 Asia/Manila] Oracle Execute Error: ORA-01400: cannot insert NULL into ("SYS"."ROOM_RESERVATION"."RESERVATION_ID")
+[22-Apr-2025 03:41:09 Asia/Manila] Failed SQL: INSERT INTO room_reservation (
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:41:09 Asia/Manila] Parameters: Array
+(
+    [:room_id] => 3
+    [:student_id] => 23-2429
+    [:start_time] => 2025-04-22 03:41
+    [:end_time] => 2025-04-22 05:41
+    [:purpose] => team_meeting
+)
+
+[22-Apr-2025 03:41:09 Asia/Manila] Error in process_room_reservation.php: Failed to insert reservation
+[22-Apr-2025 03:41:09 Asia/Manila] Stack trace: #0 {main}
+[22-Apr-2025 03:41:09 Asia/Manila] PHP Fatal error:  Uncaught TypeError: oci_free_statement(): Argument #1 ($statement) must be of type resource, bool given in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php:193
+Stack trace:
+#0 C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php(193): oci_free_statement(false)
+#1 {main}
+  thrown in C:\xampp\htdocs\LibraryManagementSystem\process\process_room_reservation.php on line 193
+[21-Apr-2025 21:42:24 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2429","purpose":"group_study","start_time":"03:42","end_time":"05:42"}
+[22-Apr-2025 03:42:24 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2429
+    [purpose] => group_study
+    [start_time] => 03:42
+    [end_time] => 05:42
+)
+
+[22-Apr-2025 03:42:24 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:42:24 Asia/Manila] Current date from Oracle: 2025-04-22
+[22-Apr-2025 03:42:24 Asia/Manila] Start time from request: 03:42
+[22-Apr-2025 03:42:24 Asia/Manila] End time from request: 05:42
+[22-Apr-2025 03:42:24 Asia/Manila] Combined start time: 2025-04-22 03:42
+[22-Apr-2025 03:42:24 Asia/Manila] Combined end time: 2025-04-22 05:42
+[22-Apr-2025 03:42:24 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-04-22 03:42, End: 2025-04-22 05:42
+[22-Apr-2025 03:42:24 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :room_id: 2
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:42
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:42
+[22-Apr-2025 03:42:24 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[22-Apr-2025 03:42:24 Asia/Manila] Generated reservation ID: 6
+[22-Apr-2025 03:42:24 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 6
+    [room_id] => 2
+    [student_id] => 23-2429
+    [start_time] => 2025-04-22 03:42
+    [end_time] => 2025-04-22 05:42
+    [purpose] => group_study
+)
+
+[22-Apr-2025 03:42:24 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :reservation_id: 6
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :room_id: 2
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :student_id: 23-2429
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:42
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:42
+[22-Apr-2025 03:42:24 Asia/Manila] Binding parameter :purpose: group_study
+[22-Apr-2025 03:42:25 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[22-Apr-2025 03:42:25 Asia/Manila] Binding parameter :reservation_id: 6
+[22-Apr-2025 03:42:25 Asia/Manila] Room reservation successful: Room 2 reserved from 2025-04-22 03:42:00 to 2025-04-22 05:42:00
+[21-Apr-2025 21:47:59 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2429","purpose":"team_meeting","start_time":"03:47","end_time":"05:47"}
+[22-Apr-2025 03:47:59 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2429
+    [purpose] => team_meeting
+    [start_time] => 03:47
+    [end_time] => 05:47
+)
+
+[22-Apr-2025 03:47:59 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[22-Apr-2025 03:47:59 Asia/Manila] Current date from Oracle: 2025-04-22
+[22-Apr-2025 03:47:59 Asia/Manila] Start time from request: 03:47
+[22-Apr-2025 03:47:59 Asia/Manila] End time from request: 05:47
+[22-Apr-2025 03:47:59 Asia/Manila] Combined start time: 2025-04-22 03:47
+[22-Apr-2025 03:47:59 Asia/Manila] Combined end time: 2025-04-22 05:47
+[22-Apr-2025 03:47:59 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-04-22 03:47, End: 2025-04-22 05:47
+[22-Apr-2025 03:47:59 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :room_id: 1
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:47
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:47
+[22-Apr-2025 03:47:59 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[22-Apr-2025 03:47:59 Asia/Manila] Generated reservation ID: 7
+[22-Apr-2025 03:47:59 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 7
+    [room_id] => 1
+    [student_id] => 23-2429
+    [start_time] => 2025-04-22 03:47
+    [end_time] => 2025-04-22 05:47
+    [purpose] => team_meeting
+)
+
+[22-Apr-2025 03:47:59 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :reservation_id: 7
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :room_id: 1
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :student_id: 23-2429
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :start_time: 2025-04-22 03:47
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :end_time: 2025-04-22 05:47
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :purpose: team_meeting
+[22-Apr-2025 03:47:59 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[22-Apr-2025 03:47:59 Asia/Manila] Binding parameter :reservation_id: 7
+[22-Apr-2025 03:47:59 Asia/Manila] Room reservation successful: Room 1 reserved from 2025-04-22 03:47:00 to 2025-04-22 05:47:00
