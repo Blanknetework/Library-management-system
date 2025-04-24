@@ -1,25 +1,25 @@
 <?php
-// Prevent any output before JSON response
+
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', 'php_errors.log');
 
-// Start output buffering to catch any unwanted output
+
 ob_start();
 
 require_once 'config.php';
 
-// Clear any output that might have occurred during config include
+
 ob_clean();
 
 header('Content-Type: application/json');
 
 try {
-    // Set timezone to match Oracle
+   
     date_default_timezone_set('Asia/Manila');
     
-    // Get current date and time from Oracle
+    
     $time_sql = "SELECT 
         TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
         TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
@@ -131,16 +131,14 @@ try {
         }
     }
     
-    // Create status array for all rooms (1-4)
+    // Create status array for all rooms (1-5)
     $room_status = [];
-    for ($i = 1; $i <= 4; $i++) {
-        // Find all reservations for this room
+    for ($i = 1; $i <= 5; $i++) {
         $room_reservations = array_filter($all_reservations, function($res) use ($i) {
             return $res['room_id'] === $i;
         });
         
-        // Get the most relevant status for this room
-        $status = 'AVAILABLE'; // Default status
+        $status = 'AVAILABLE'; 
         $end_time = null;
         
         foreach ($room_reservations as $res) {
@@ -164,7 +162,6 @@ try {
         
         error_log("Setting Room {$i} status to: " . $status . ($end_time ? " (Ends at: $end_time)" : ""));
         
-        // Log all reservations for this room
         if (!empty($room_reservations)) {
             error_log("All reservations for Room {$i}: " . json_encode($room_reservations));
         }
@@ -183,7 +180,7 @@ try {
         'timestamp' => time()
     ];
     
-    // Clear any buffered output before sending JSON
+    
     ob_clean();
     
     echo json_encode($response);
@@ -193,7 +190,7 @@ try {
     error_log("Error in get_room_status.php: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
     
-    // Clear any buffered output before sending error JSON
+   
     ob_clean();
     
     echo json_encode([
@@ -205,7 +202,7 @@ try {
     if (isset($time_stmt)) oci_free_statement($time_stmt);
     if (isset($stmt)) oci_free_statement($stmt);
     
-    // End output buffering
+    
     ob_end_flush();
 }
 ?> 

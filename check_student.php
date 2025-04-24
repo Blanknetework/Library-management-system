@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Query student details
     $sql = "SELECT student_id, full_name, course, section 
-            FROM sys.students 
+            FROM students 
             WHERE student_id = :student_id";
     
     error_log("Executing SQL: " . $sql);
@@ -41,6 +41,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if ($student) {
                     error_log("Student found: " . print_r($student, true));
+                    
+                    // Insert access log record
+                    $access_sql = "INSERT INTO sys.login (login_id, student_id, login_time, used_facility, facility_id) 
+                                 VALUES (sys.login_seq.NEXTVAL, :student_id, CURRENT_TIMESTAMP, 'N', NULL)";
+                    
+                    $access_stmt = oci_parse($conn, $access_sql);
+                    if ($access_stmt) {
+                        oci_bind_by_name($access_stmt, ":student_id", $student_id);
+                        $access_result = oci_execute($access_stmt, OCI_COMMIT_ON_SUCCESS);
+                        
+                        if ($access_result) {
+                            error_log("Access log recorded successfully for student: " . $student_id);
+                        } else {
+                            $e = oci_error($access_stmt);
+                            error_log("Failed to record access log: " . $e['message']);
+                        }
+                        oci_free_statement($access_stmt);
+                    }
+                    
                     echo json_encode([
                         'success' => true,
                         'student' => [

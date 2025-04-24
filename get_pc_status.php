@@ -5,21 +5,21 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', 'php_errors.log');
 
-// Start output buffering to catch any unwanted output
+
 ob_start();
 
 require_once 'config.php';
 
-// Clear any output that might have occurred during config include
+
 ob_clean();
 
 header('Content-Type: application/json');
 
 try {
-    // Set timezone to match Oracle
+
     date_default_timezone_set('Asia/Manila');
     
-    // Get current date and time from Oracle
+
     $time_sql = "SELECT 
         TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
         TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
@@ -129,7 +129,7 @@ try {
         $pc_status[$i] = $is_occupied;
         error_log("Setting PC {$i} status to: " . ($is_occupied ? "occupied" : "available"));
         
-        // Log all reservations for this PC
+      
         $pc_reservations = array_filter($all_reservations, function($res) use ($i) {
             return $res['pc_id'] === $i;
         });
@@ -161,7 +161,7 @@ try {
     error_log("Error in get_pc_status.php: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
     
-    // Clear any buffered output before sending error JSON
+
     ob_clean();
     
     echo json_encode([
@@ -169,11 +169,11 @@ try {
         'message' => $e->getMessage()
     ]);
 } finally {
-    // Free statements
+  
     if (isset($time_stmt)) oci_free_statement($time_stmt);
     if (isset($stmt)) oci_free_statement($stmt);
     
-    // End output buffering
+  
     ob_end_flush();
 }
 ?> 

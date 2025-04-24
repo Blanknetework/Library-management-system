@@ -25,3 +25,7 @@ document.getElementById('studentIdForm').addEventListener('submit', async (e) =>
         alert('An error occurred. Please try again.');
     }
 });
+
+
+
+

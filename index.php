@@ -1,8 +1,8 @@
 <?php
-// Start session
+
 session_start();
 
-// Include database configuration
+
 require_once 'config.php';
 
 // Check for login errors
@@ -207,7 +207,7 @@ if (isset($_SESSION['login_errors'])) {
                                 </label>
                                 <select x-model="selectedRoom" class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
                                     <option value="">Room Number</option>
-                                    <template x-for="i in 4" :key="i">
+                                    <template x-for="i in 5" :key="i">
                                         <option :value="i" 
                                                 :disabled="roomStatus[i] === 'ACTIVE' || roomStatus[i] === 'UPCOMING_TODAY'" 
                                                 :class="{
@@ -313,7 +313,7 @@ if (isset($_SESSION['login_errors'])) {
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm">
-                                        <template x-for="i in 4" :key="i">
+                                        <template x-for="i in 5" :key="i">
                                             <tr class="border-b">
                                                 <td class="py-1.5 px-3 text-center" x-text="'Room ' + i"></td>
                                                 <td class="py-1.5 px-3 text-center">
@@ -365,7 +365,7 @@ if (isset($_SESSION['login_errors'])) {
             maxRoomEndTime: '',
             statusRefreshInterval: null,
 
-            // PC status computed property
+           
             get pcStatus() {
                 return this.pcStatusData;
             },
@@ -374,7 +374,7 @@ if (isset($_SESSION['login_errors'])) {
                 this.pcStatusData = { ...value };
             },
 
-            // Room status computed property
+          
             get roomStatus() {
                 return this.roomStatusData;
             },
@@ -384,7 +384,7 @@ if (isset($_SESSION['login_errors'])) {
             },
 
             init() {
-                // Initialize status
+               
                 const initialPCStatus = {};
                 for (let i = 1; i <= 19; i++) {
                     initialPCStatus[i] = null;
@@ -392,22 +392,22 @@ if (isset($_SESSION['login_errors'])) {
                 this.pcStatus = initialPCStatus;
 
                 const initialRoomStatus = {};
-                for (let i = 1; i <= 4; i++) {
+                for (let i = 1; i <= 5; i++) {
                     initialRoomStatus[i] = null;
                 }
                 this.roomStatus = initialRoomStatus;
                 
-                // Initial load of status
+               
                 this.loadPCStatus();
                 this.loadRoomStatus();
                 
-                // Set up auto-refresh every 30 seconds
+             
                 this.statusRefreshInterval = setInterval(() => {
                     this.loadPCStatus();
                     this.loadRoomStatus();
                 }, 30000);
 
-                // Add event listeners for visibility and focus
+               
                 document.addEventListener('visibilitychange', () => {
                     if (!document.hidden) {
                         this.loadPCStatus();
@@ -446,11 +446,11 @@ if (isset($_SESSION['login_errors'])) {
                 newStatus[pcId] = true;
                 this.pcStatus = newStatus;
                 
-                // Force UI update
+             
                 this.$nextTick(() => {
                     console.log(`PC ${pcId} marked as occupied:`, this.pcStatusData);
                     
-                    // Update the UI elements directly
+                   
                     const pcStatusElements = document.querySelectorAll(`[x-text="pcStatus[i] ? 'Occupied' : 'Available'"]`);
                     pcStatusElements.forEach(el => {
                         if (el.closest('tr') && el.closest('tr').querySelector('td').textContent.includes(`PC ${pcId}`)) {
@@ -464,23 +464,23 @@ if (isset($_SESSION['login_errors'])) {
 
             async loadPCStatus() {
                 try {
-                    // Add a cache-busting parameter to prevent browser caching
+                   
                     const response = await fetch('get_pc_status.php?t=' + new Date().getTime());
                     const data = await response.json();
                     
                     if (data.success) {
                         console.log('Received PC status:', data);
                         
-                        // Create new status object
+                       
                         const newStatus = {};
                         let hasChanges = false;
                         
-                        // First set all PCs as available
+                       
                         for (let i = 1; i <= 19; i++) {
                             newStatus[i] = null;
                         }
                         
-                        // Update status based on reservations
+                       
                         data.active_reservations.forEach(res => {
                             const pcId = parseInt(res.pc_id);
                             if (pcId >= 1 && pcId <= 19) {
@@ -496,7 +496,7 @@ if (isset($_SESSION['login_errors'])) {
                             this.pcStatus = newStatus;
                         }
                         
-                        // Clear selection if PC is now occupied or has upcoming reservation
+                        
                         if (this.selectedPC && (newStatus[this.selectedPC] === 'ACTIVE' || newStatus[this.selectedPC] === 'UPCOMING_TODAY')) {
                             this.selectedPC = '';
                             this.purpose = '';
@@ -516,7 +516,7 @@ if (isset($_SESSION['login_errors'])) {
                     return;
                 }
 
-                // Get current date for base comparison
+              
                 const today = new Date();
                 const [startHours, startMinutes] = this.startTime.split(':').map(Number);
                 
@@ -532,13 +532,13 @@ if (isset($_SESSION['login_errors'])) {
                 const maxDate = new Date(startDate);
                 maxDate.setHours(startDate.getHours() + 2);
 
-                // Format times for input
+                
                 this.minEndTime = minDate.getHours().toString().padStart(2, '0') + ':' + 
                                  minDate.getMinutes().toString().padStart(2, '0');
                 this.maxEndTime = maxDate.getHours().toString().padStart(2, '0') + ':' + 
                                  maxDate.getMinutes().toString().padStart(2, '0');
 
-                // Set default end time to minimum (1 hour after start)
+              
                 this.endTime = this.minEndTime;
             },
 
@@ -575,13 +575,13 @@ if (isset($_SESSION['login_errors'])) {
                     const data = await response.json();
                     
                     if (data.success) {
-                        // Mark PC as occupied immediately
+                      
                         this.markPCAsOccupied(this.selectedPC);
                         
-                        // Show success message
+                      
                         alert(`PC ${this.selectedPC} has been successfully reserved\nStart: ${data.data.stored_start_time}\nEnd: ${data.data.stored_end_time}`);
                         
-                        // Reset form
+                    
                         this.selectedPC = '';
                         this.purpose = '';
                         this.startTime = '';
@@ -589,11 +589,10 @@ if (isset($_SESSION['login_errors'])) {
                         this.minEndTime = '';
                         this.maxEndTime = '';
                         
-                        // Force an immediate refresh of PC status from the server
+                       
                         await this.loadPCStatus();
                         
-                        // Keep the reservation modal open
-                        // this.showReservationModal = false; // Removed this line
+                        
                     } else {
                         throw new Error(data.message || 'Failed to make reservation');
                     }
@@ -615,38 +614,38 @@ if (isset($_SESSION['login_errors'])) {
                         const newStatus = {};
                         let hasChanges = false;
                         
-                        // Initialize all rooms as available
-                        for (let i = 1; i <= 4; i++) {
+                       
+                        for (let i = 1; i <= 5; i++) {
                             newStatus[i] = 'AVAILABLE';
                         }
                         
-                        // Update status based on active and upcoming reservations
+                        
                         data.active_reservations.forEach(res => {
                             const roomId = parseInt(res.room_id);
-                            if (roomId >= 1 && roomId <= 4) {
+                            if (roomId >= 1 && roomId <= 5) {
                                 newStatus[roomId] = 'ACTIVE';
                             }
                         });
 
                         data.upcoming_reservations.forEach(res => {
                             const roomId = parseInt(res.room_id);
-                            if (roomId >= 1 && roomId <= 4 && newStatus[roomId] !== 'ACTIVE') {
+                            if (roomId >= 1 && roomId <= 5 && newStatus[roomId] !== 'ACTIVE') {
                                 newStatus[roomId] = 'UPCOMING_TODAY';
                             }
                         });
 
-                        // Check all reservations for future ones
+                       
                         data.all_reservations.forEach(res => {
                             const roomId = parseInt(res.room_id);
-                            if (roomId >= 1 && roomId <= 4) {
+                            if (roomId >= 1 && roomId <= 5) {
                                 if (res.status === 'FUTURE' && newStatus[roomId] !== 'ACTIVE' && newStatus[roomId] !== 'UPCOMING_TODAY') {
                                     newStatus[roomId] = 'FUTURE';
                                 }
                             }
                         });
                         
-                        // Check if there are any changes
-                        for (let i = 1; i <= 4; i++) {
+                       
+                        for (let i = 1; i <= 5; i++) {
                             if (newStatus[i] !== this.roomStatusData[i]) {
                                 hasChanges = true;
                                 break;
@@ -658,7 +657,7 @@ if (isset($_SESSION['login_errors'])) {
                             console.log('Updated room status:', this.roomStatus);
                         }
                         
-                        // Clear selection if room is now occupied or has upcoming reservation
+                       
                         if (this.selectedRoom && (newStatus[this.selectedRoom] === 'ACTIVE' || newStatus[this.selectedRoom] === 'UPCOMING_TODAY')) {
                             this.selectedRoom = '';
                             this.roomPurpose = '';
@@ -697,7 +696,7 @@ if (isset($_SESSION['login_errors'])) {
                 this.maxRoomEndTime = maxDate.getHours().toString().padStart(2, '0') + ':' + 
                                     maxDate.getMinutes().toString().padStart(2, '0');
 
-                // Set default end time to minimum (2 hours after start)
+               
                 this.roomEndTime = this.minRoomEndTime;
             },
 
@@ -707,7 +706,7 @@ if (isset($_SESSION['login_errors'])) {
                 newStatus[roomId] = 'ACTIVE';
                 this.roomStatus = newStatus;
                 
-                // Force Alpine.js to update the UI
+                
                 this.$nextTick(() => {
                     console.log(`Room ${roomId} status after update:`, this.roomStatus[roomId]);
                 });
@@ -720,12 +719,11 @@ if (isset($_SESSION['login_errors'])) {
                 }
 
                 try {
-                    // Validate student details
                     if (!this.studentDetails || !this.studentDetails.student_id) {
                         throw new Error('Student details not found. Please try logging in again.');
                     }
 
-                    // Check room availability first
+                    // Check room availability before submitting
                     await this.loadRoomStatus();
                     if (this.roomStatus[this.selectedRoom] === 'ACTIVE' || 
                         this.roomStatus[this.selectedRoom] === 'UPCOMING_TODAY') {
@@ -762,16 +760,7 @@ if (isset($_SESSION['login_errors'])) {
                     console.log('Server response:', data);
                     
                     if (data.success) {
-                        // Immediately mark room as occupied
-                        const newStatus = { ...this.roomStatusData };
-                        newStatus[this.selectedRoom] = 'ACTIVE';
-                        this.roomStatus = newStatus;
-                        
-                        // Force an immediate refresh of room status
-                        await this.loadRoomStatus();
-                        
-                        alert(`Room ${this.selectedRoom} has been successfully reserved\nStart: ${data.data.stored_start_time}\nEnd: ${data.data.stored_end_time}`);
-                        
+                        // Clear form fields first
                         this.selectedRoom = '';
                         this.roomPurpose = '';
                         this.roomStartTime = '';
@@ -779,8 +768,10 @@ if (isset($_SESSION['login_errors'])) {
                         this.minRoomEndTime = '';
                         this.maxRoomEndTime = '';
                         
-                        // Schedule another status refresh after a short delay
-                        setTimeout(() => this.loadRoomStatus(), 1000);
+                        // Then reload room status to get the latest state from server
+                        await this.loadRoomStatus();
+                        
+                        alert(`Room ${requestData.room_id} has been successfully reserved\nStart: ${data.data.stored_start_time}\nEnd: ${data.data.stored_end_time}`);
                     } else {
                         throw new Error(data.message || 'Failed to make room reservation');
                     }
@@ -808,7 +799,6 @@ if (isset($_SESSION['login_errors'])) {
                     if (data.success) {
                         this.studentDetails = data.student;
                         this.showModal = true;
-                        // Load PC status immediately when student is verified
                         await this.loadPCStatus();
                     } else {
                         alert(data.message || 'Student not found. Please check your ID.');

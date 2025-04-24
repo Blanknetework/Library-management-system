@@ -8,7 +8,7 @@ if (!$conn) {
     die("Connection failed");
 }
 
-// Check various time-related settings
+
 $checks = array(
     "SELECT SESSIONTIMEZONE FROM DUAL",
     "SELECT DBTIMEZONE FROM DUAL",
@@ -27,7 +27,7 @@ foreach ($checks as $sql) {
     oci_free_statement($stmt);
 }
 
-// Also check some active reservations with their times
+
 echo "<h2>Current Active Reservations:</h2>";
 $res_sql = "SELECT 
     pc_id,

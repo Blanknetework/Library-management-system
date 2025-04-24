@@ -1,6 +1,6 @@
 <?php
 // Include database configuration
-require_once 'config.php';
+require_once '../config.php';
 
 echo "<h1>Library Management System Database Test</h1>";
 

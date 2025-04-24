@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once '../config.php';
 
 echo "<h1>PC Reservations Test</h1>";
 

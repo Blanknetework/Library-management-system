@@ -1,16 +1,15 @@
 <?php
-// Prevent any output before JSON response
+
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', 'php_errors.log');
 
-// Start output buffering to catch any unwanted output
 ob_start();
 
 require_once '../config.php';
 
-// Clear any output that might have occurred during config include
+
 ob_clean();
 
 header('Content-Type: application/json');
@@ -31,12 +30,12 @@ try {
         throw new Exception('Missing required fields');
     }
 
-    // Set timezone to match Oracle
+
     date_default_timezone_set('Asia/Manila');
     
     error_log("Processing room reservation request: " . print_r($data, true));
     
-    // Get current date and time from Oracle
+   
     $time_sql = "SELECT 
         TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
         TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
@@ -96,14 +95,31 @@ try {
         throw new Exception('Room is already reserved for this time period');
     }
 
+    // Get next reservation ID from sequence
+    $seq_sql = "SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL";
+    $seq_stmt = executeOracleQuery($seq_sql);
+    if (!$seq_stmt) {
+        throw new Exception('Failed to get next reservation ID');
+    }
+    
+    $seq_row = oci_fetch_assoc($seq_stmt);
+    if (!$seq_row) {
+        throw new Exception('Failed to fetch next reservation ID');
+    }
+    
+    $reservation_id = $seq_row['NEXT_ID'];
+    error_log("Generated reservation ID: " . $reservation_id);
+
     // Insert the reservation
     $insert_sql = "INSERT INTO room_reservation (
+                      reservation_id,
                       room_id, 
                       student_id, 
                       start_time, 
                       end_time, 
                       purpose
                   ) VALUES (
+                      :reservation_id,
                       :room_id,
                       :student_id,
                       CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
@@ -112,6 +128,7 @@ try {
                   )";
 
     error_log("Executing insert query with params: " . print_r([
+        'reservation_id' => $reservation_id,
         'room_id' => $data['room_id'],
         'student_id' => $data['student_id'],
         'start_time' => $start_time,
@@ -120,6 +137,7 @@ try {
     ], true));
 
     $insert_stmt = executeOracleQuery($insert_sql, [
+        ':reservation_id' => $reservation_id,
         ':room_id' => $data['room_id'],
         ':student_id' => $data['student_id'],
         ':start_time' => $start_time,
@@ -136,16 +154,10 @@ try {
                       TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
                       TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
                    FROM room_reservation 
-                   WHERE room_id = :room_id 
-                   AND student_id = :student_id 
-                   AND start_time = CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP)
-                   AND end_time = CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP)";
+                   WHERE reservation_id = :reservation_id";
 
     $select_stmt = executeOracleQuery($select_sql, [
-        ':room_id' => $data['room_id'],
-        ':student_id' => $data['student_id'],
-        ':start_time' => $start_time,
-        ':end_time' => $end_time
+        ':reservation_id' => $reservation_id
     ]);
 
     if (!$select_stmt) {
@@ -162,15 +174,16 @@ try {
         'success' => true,
         'message' => 'Room reservation successful',
         'data' => [
+            'reservation_id' => $reservation_id,
             'stored_start_time' => $row['STORED_START_TIME'],
             'stored_end_time' => $row['STORED_END_TIME']
         ]
     ];
     
-    // Log the successful reservation
+
     error_log("Room reservation successful: Room {$data['room_id']} reserved from {$row['STORED_START_TIME']} to {$row['STORED_END_TIME']}");
     
-    // Clear any buffered output before sending JSON
+
     ob_clean();
     
     echo json_encode($response);
@@ -179,7 +192,7 @@ try {
     error_log("Error in process_room_reservation.php: " . $e->getMessage());
     error_log("Stack trace: " . $e->getTraceAsString());
     
-    // Clear any buffered output before sending error JSON
+
     ob_clean();
     
     echo json_encode([
@@ -187,13 +200,14 @@ try {
         'message' => $e->getMessage()
     ]);
 } finally {
-    // Free statements
+
     if (isset($time_stmt)) oci_free_statement($time_stmt);
     if (isset($check_stmt)) oci_free_statement($check_stmt);
+    if (isset($seq_stmt)) oci_free_statement($seq_stmt);
     if (isset($insert_stmt)) oci_free_statement($insert_stmt);
     if (isset($select_stmt)) oci_free_statement($select_stmt);
     
-    // End output buffering
+
     ob_end_flush();
 }
 ?> 
