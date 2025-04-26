@@ -8,7 +8,8 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $student_id = isset($_POST['student_id']) ? trim($_POST['student_id']) : '';
+    $input = json_decode(file_get_contents('php://input'), true);
+    $student_id = isset($input['student_id']) ? trim($input['student_id']) : '';
     
     error_log("Checking student ID: " . $student_id);
     

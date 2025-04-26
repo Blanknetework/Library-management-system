@@ -117,7 +117,7 @@ if (isset($_SESSION['login_errors'])) {
     <div x-show="showReservationModal" 
          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4"
          style="display: none;">
-        <div class="bg-white rounded-lg w-[800px] p-6">
+        <div class="bg-white rounded-lg w-[800px] p-10">
             <!-- Reservation Options -->
             <div class="flex gap-4 mb-6">
                 <button @click="activeTab = 'pc'; resetForm()" 
@@ -136,65 +136,72 @@ if (isset($_SESSION['login_errors'])) {
                     </svg>
                     LIBRARY ROOM RESERVATION
                 </button>
-                    </div>
-                    
-            <div class="grid grid-cols-2 gap-4">
+                <button @click="activeTab = 'book'; resetForm()"
+                        :class="activeTab === 'book' ? 'bg-blue-900 text-white' : 'bg-white text-blue-900 border border-blue-900'"
+                        class="flex items-center gap-2 px-4 py-2 rounded text-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    BOOK BORROWING
+                </button>
+            </div>
+            
+            <div :class="{'grid grid-cols-2 gap-4': activeTab !== 'book', 'block': activeTab === 'book'}">
                 <!-- Left Column - Reservation Form -->
                 <div class="space-y-3">
                     <!-- PC Reservation Form -->
                     <template x-if="activeTab === 'pc'">
-                <div class="space-y-3">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Select a PC from the available PC's on the right
-                        </label>
-                        <select x-model="selectedPC" class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
-                            <option value="">PC Number</option>
-                            <template x-for="i in 19" :key="i">
-                                <option :value="i" 
-                                        :disabled="pcStatus[i]" 
-                                        :class="pcStatus[i] ? 'text-red-500' : 'text-green-500'"
-                                        x-text="'PC ' + i + ' - ' + (pcStatus[i] ? 'Occupied' : 'Available')">
-                                </option>
-                            </template>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Purpose</label>
-                        <select x-model="purpose" class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
-                            <option value="">Select purpose...</option>
-                            <option value="research">Research</option>
-                            <option value="assignment">Assignment</option>
-                            <option value="browsing">Internet Browsing</option>
-                            <option value="printing">Printing</option>
-                        </select>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-3">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Start time</label>
-                                <input type="time" 
-                                    x-model="startTime" 
-                                    @change="validateAndSetEndTime"
-                                    class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">
+                                    Select a PC from the available PC's on the right
+                                </label>
+                                <select x-model="selectedPC" class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
+                                    <option value="">PC Number</option>
+                                    <template x-for="i in 19" :key="i">
+                                        <option :value="i" 
+                                                :disabled="pcStatus[i]" 
+                                                :class="pcStatus[i] ? 'text-red-500' : 'text-green-500'"
+                                                x-text="'PC ' + i + ' - ' + (pcStatus[i] ? 'Occupied' : 'Available')">
+                                        </option>
+                                    </template>
+                                </select>
                             </div>
+                            
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">End time</label>
-                                <input type="time" 
-                                    x-model="endTime" 
-                                    :min="minEndTime"
-                                    :max="maxEndTime"
-                                    :disabled="!startTime"
-                                    class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
-                                <span class="text-xs text-gray-500 mt-1 block">1-2 hours duration</span>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Purpose</label>
+                                <select x-model="purpose" class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
+                                    <option value="">Select purpose...</option>
+                                    <option value="research">Research</option>
+                                    <option value="assignment">Assignment</option>
+                                    <option value="browsing">Internet Browsing</option>
+                                    <option value="printing">Printing</option>
+                                </select>
                             </div>
-                    </div>
-                    
-                    <button @click="submitReservation" 
-                            class="w-full bg-blue-900 text-white py-2 rounded text-sm mt-2">
-                                CONFIRM PC RESERVATION
-                            </button>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Start time</label>
+                                        <input type="time" 
+                                            x-model="startTime" 
+                                            @change="validateAndSetEndTime"
+                                            class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">End time</label>
+                                        <input type="time" 
+                                            x-model="endTime" 
+                                            :min="minEndTime"
+                                            :max="maxEndTime"
+                                            :disabled="!startTime"
+                                            class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
+                                    </div>
+                            </div>
+                            
+                            <button @click="submitReservation" 
+                                    class="w-full bg-blue-900 text-white py-2 rounded text-sm mt-2">
+                                    CONFIRM PC RESERVATION
+                                </button>
                         </div>
                     </template>
 
@@ -249,7 +256,6 @@ if (isset($_SESSION['login_errors'])) {
                                         :max="maxRoomEndTime"
                                         :disabled="!roomStartTime"
                                         class="w-full p-1.5 border-2 border-blue-900 rounded text-sm">
-                                    <span class="text-xs text-gray-500 mt-1 block">2-4 hours duration</span>
                                 </div>
                             </div>
                             
@@ -259,10 +265,185 @@ if (isset($_SESSION['login_errors'])) {
                         </button>
                         </div>
                     </template>
+                    
+                    <!-- Book Borrowing Form -->
+                    <template x-if="activeTab === 'book'">
+                        <div class="space-y-6 max-h-[600px] overflow-y-auto col-span-full w-full px-4">
+                            <!-- Header and Search -->
+                            <div class="flex flex-col space-y-4 sticky top-0 bg-white z-10 py-4 border-b">
+                                <div class="flex items-center justify-between">
+                                    <h2 class="text-2xl font-bold text-blue-900">Book Borrowing</h2>
+                                    <!-- Book Status Summary -->
+                                    <div class="flex gap-6">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                                            <span class="text-sm font-medium text-gray-600">Available:</span>
+                                            <span class="text-sm font-bold text-gray-800" x-text="filteredBooks.filter(b => b.availability === 'Available').length + ' books'"></span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                            <span class="text-sm font-medium text-gray-600">Borrowed:</span>
+                                            <span class="text-sm font-bold text-gray-800" x-text="filteredBooks.filter(b => b.availability !== 'Available').length + ' books'"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Search Box -->
+                                <div class="relative w-full">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" 
+                                        x-model="bookSearch" 
+                                        @input="searchBooks"
+                                        class="w-full pl-12 pr-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                                        placeholder="Search books by title or author...">
+                                </div>
+                            </div>
+                            
+                            <!-- Books Grid -->
+                            <div class="grid grid-cols-2 gap-6">
+                                <template x-for="book in filteredBooks" :key="book.book_id">
+                                    <div class="bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 transform hover:-translate-y-1">
+                                        <!-- Book Title -->
+                                        <div class="p-4 border-b bg-gray-50">
+                                            <h3 class="font-semibold text-lg text-blue-900 line-clamp-2" x-text="book.title"></h3>
+                                        </div>
+                                        
+                                        <!-- Book Details -->
+                                        <div class="p-4 space-y-4">
+                                            <div class="space-y-2">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-gray-500 font-medium min-w-[4rem]">Author:</span>
+                                                    <span class="text-gray-800" x-text="book.author"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-gray-500 font-medium min-w-[4rem]">Status:</span>
+                                                    <span class="inline-flex px-3 py-1 rounded-full text-sm font-medium"
+                                                        :class="book.availability === 'Available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                                        x-text="book.availability">
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <button @click="requestBook(book)"
+                                                :disabled="book.availability !== 'Available'"
+                                                :class="book.availability === 'Available' ? 'bg-blue-900 hover:bg-blue-800 text-white shadow-sm' : 'bg-gray-100 text-gray-400 cursor-not-allowed'"
+                                                class="w-full py-2.5 px-4 text-center font-medium rounded-lg transition duration-150 ease-in-out">
+                                                Request Book
+                                            </button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <!-- No results message -->
+                            <div x-show="filteredBooks.length === 0" class="text-center py-8">
+                                <div class="text-gray-400 mb-2">
+                                    <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <p class="text-gray-500 text-lg">No books match your search.</p>
+                                <p class="text-gray-400">Try different keywords or browse all books.</p>
+                            </div>
+                            
+                            <!-- My Borrowing Requests -->
+                            <div class="mt-8 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                <div class="p-4 bg-gray-50 border-b border-gray-200">
+                                    <h3 class="text-lg font-semibold text-blue-900">My Borrowing Requests</h3>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-blue-900 text-white">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Book Title</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Request Date</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-100">
+                                            <template x-for="request in borrowingRequests" :key="request.request_id">
+                                                <tr class="hover:bg-gray-50 transition duration-150">
+                                                    <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-800" x-text="request.title"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-gray-600" x-text="request.request_date"></td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span :class="{
+                                                            'bg-yellow-100 text-yellow-800': request.status === 'Pending',
+                                                            'bg-green-100 text-green-800': request.status === 'Approved',
+                                                            'bg-red-100 text-red-800': request.status === 'Rejected'
+                                                        }" class="px-3 py-1 rounded-full text-xs font-medium" x-text="request.status">
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            </template>
+                                            <!-- Empty state -->
+                                            <tr x-show="borrowingRequests.length === 0">
+                                                <td colspan="3" class="px-6 py-8 text-center">
+                                                    <p class="text-gray-500 text-sm">You don't have any borrowing requests yet.</p>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <!-- Borrowing Policy and Library Hours -->
+                            <div class="grid grid-cols-2 gap-6 mt-8 mb-6">
+                                <div class="bg-white p-6 rounded-lg border border-gray-200">
+                                    <h4 class="font-semibold text-lg text-blue-900 mb-4">Library Hours</h4>
+                                    <div class="space-y-2">
+                                        <div class="flex justify-between items-center py-1 border-b border-gray-100">
+                                            <span class="text-gray-600">Monday - Friday:</span>
+                                            <span class="text-gray-800 font-medium">7:00 AM - 5:00 PM</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-1 border-b border-gray-100">
+                                            <span class="text-gray-600">Saturday:</span>
+                                            <span class="text-gray-800 font-medium">7:00 AM - 5:00 PM</span>
+                                        </div>
+                                        <div class="flex justify-between items-center py-1">
+                                            <span class="text-gray-600">Sunday:</span>
+                                            <span class="text-gray-800 font-medium">Closed</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bg-white p-6 rounded-lg border border-gray-200">
+                                    <h4 class="font-semibold text-lg text-blue-900 mb-4">Borrowing Policy</h4>
+                                    <ul class="space-y-2">
+                                        <li class="flex items-center gap-2 text-gray-700">
+                                            <svg class="w-5 h-5 text-blue-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                            Maximum of 3 books per student
+                                        </li>
+                                        <li class="flex items-center gap-2 text-gray-700">
+                                            <svg class="w-5 h-5 text-blue-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                            Borrowing period: 2 days
+                                        </li>
+                                        <li class="flex items-center gap-2 text-gray-700">
+                                            <svg class="w-5 h-5 text-blue-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                            Renewal possible if no reservation
+                                        </li>
+                                        <li class="flex items-center gap-2 text-gray-700">
+                                            <svg class="w-5 h-5 text-blue-900 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                            Fine for late returns: ₱10/day
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 <!-- Right Column - Status Display -->
-                <div>
+                <div x-show="activeTab !== 'book'">
                     <!-- PC Status -->
                     <template x-if="activeTab === 'pc'">
                     <div class="border rounded">
@@ -364,6 +545,11 @@ if (isset($_SESSION['login_errors'])) {
             minRoomEndTime: '',
             maxRoomEndTime: '',
             statusRefreshInterval: null,
+            isLoggedIn: false,
+            bookSearch: '',
+            books: [],
+            filteredBooks: [],
+            borrowingRequests: [],
 
            
             get pcStatus() {
@@ -768,7 +954,7 @@ if (isset($_SESSION['login_errors'])) {
                         this.minRoomEndTime = '';
                         this.maxRoomEndTime = '';
                         
-                        // Then reload room status to get the latest state from server
+                        
                         await this.loadRoomStatus();
                         
                         alert(`Room ${requestData.room_id} has been successfully reserved\nStart: ${data.data.stored_start_time}\nEnd: ${data.data.stored_end_time}`);
@@ -783,15 +969,18 @@ if (isset($_SESSION['login_errors'])) {
             },
 
             async checkStudent() {
-                const studentId = this.$refs.studentIdInput.value;
-                
+                const studentId = this.$refs.studentIdInput.value.trim();
+                if (!studentId) {
+                    alert('Please enter your Student ID.');
+                    return;
+                }
                 try {
                     const response = await fetch('check_student.php', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'Content-Type': 'application/json',
                         },
-                        body: `student_id=${encodeURIComponent(studentId)}`
+                        body: JSON.stringify({ student_id: studentId })
                     });
                     
                     const data = await response.json();
@@ -800,6 +989,9 @@ if (isset($_SESSION['login_errors'])) {
                         this.studentDetails = data.student;
                         this.showModal = true;
                         await this.loadPCStatus();
+                        await this.loadBooks();
+                        await this.loadBorrowingRequests();
+                        this.isLoggedIn = true;
                     } else {
                         alert(data.message || 'Student not found. Please check your ID.');
                     }
@@ -838,6 +1030,71 @@ if (isset($_SESSION['login_errors'])) {
                         return 'Available';
                     default:
                         return 'Available';
+                }
+            },
+
+            async loadBooks() {
+                try {
+                    const response = await fetch('get_books.php');
+                    const data = await response.json();
+                    if (data.success) {
+                        this.books = data.books;
+                        this.filteredBooks = this.books;
+                    }
+                } catch (error) {
+                    console.error('Error loading books:', error);
+                }
+            },
+
+            async loadBorrowingRequests() {
+                try {
+                    const response = await fetch('get_borrowing_requests.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ student_id: this.studentDetails.student_id })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        this.borrowingRequests = data.requests;
+                    }
+                } catch (error) {
+                    console.error('Error loading borrowing requests:', error);
+                }
+            },
+
+            searchBooks() {
+                const searchTerm = this.bookSearch.toLowerCase();
+                this.filteredBooks = this.books.filter(book => 
+                    book.title.toLowerCase().includes(searchTerm) ||
+                    book.author.toLowerCase().includes(searchTerm)
+                );
+            },
+
+            async requestBook(book) {
+                try {
+                    const response = await fetch('request_book.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            student_id: this.studentDetails.student_id,
+                            book_id: book.book_id
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        alert('Book request submitted successfully!');
+                        this.loadBorrowingRequests();
+                    } else {
+                        alert(data.message || 'Failed to submit book request');
+                    }
+                } catch (error) {
+                    console.error('Error requesting book:', error);
+                    alert('An error occurred while submitting the request');
                 }
             }
         }));

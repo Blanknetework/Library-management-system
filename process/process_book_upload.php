@@ -143,37 +143,6 @@ try {
         throw new Exception("Failed to insert book: " . oci_error($book_insert_stmt)['message']);
     }
     
-    // Record the book loan
-    $loan_sql = "INSERT INTO sys.book_loans (
-                    book_id,
-                    student_id,
-                    borrow_date,
-                    return_date
-                ) VALUES (
-                    :book_id,
-                    :student_id,
-                    TO_TIMESTAMP(:borrow_date, 'YYYY-MM-DD HH24:MI:SS'),
-                    TO_TIMESTAMP(:due_date, 'YYYY-MM-DD HH24:MI:SS')
-                )";
-    
-    $loan_stmt = oci_parse($conn, $loan_sql);
-    if (!$loan_stmt) {
-        throw new Exception("Database error: " . oci_error($conn)['message']);
-    }
-    
-    // Create temporary variables for concatenated strings
-    $borrow_date_time = $date_borrowed . ' 00:00:00';
-    $due_date_time = $return_date . ' 00:00:00';
-    
-    oci_bind_by_name($loan_stmt, ":book_id", $reference_id);
-    oci_bind_by_name($loan_stmt, ":student_id", $student_id);
-    oci_bind_by_name($loan_stmt, ":borrow_date", $borrow_date_time);
-    oci_bind_by_name($loan_stmt, ":due_date", $due_date_time);
-    
-    if (!oci_execute($loan_stmt, OCI_NO_AUTO_COMMIT)) {
-        throw new Exception("Failed to record loan: " . oci_error($loan_stmt)['message']);
-    }
-    
     // Record facility usage
     $usage_sql = "INSERT INTO sys.facility_usage (
                     usage_id, 
@@ -212,14 +181,13 @@ try {
     // Return success response
     echo json_encode([
         'success' => true,
-        'message' => 'Book successfully added and borrowed',
+        'message' => 'Book successfully added',
         'data' => [
             'reference_id' => $reference_id,
             'book_title' => $book_title,
             'student_id' => $student_id,
             'student_name' => $student_name,
-            'borrow_date' => $date_borrowed,
-            'return_date' => $return_date,
+            'date_added' => $date_borrowed,
             'branch' => $branch
         ]
     ]);
@@ -242,7 +210,6 @@ try {
     if (isset($student_insert_stmt)) oci_free_statement($student_insert_stmt);
     if (isset($ref_stmt)) oci_free_statement($ref_stmt);
     if (isset($book_insert_stmt)) oci_free_statement($book_insert_stmt);
-    if (isset($loan_stmt)) oci_free_statement($loan_stmt);
     if (isset($usage_stmt)) oci_free_statement($usage_stmt);
     if (isset($conn)) oci_close($conn);
 }

@@ -16,11 +16,42 @@ $has_searched = isset($_GET['search']);
 
 // Fetch borrowed books from database
 $borrowed_books = [];
+$pending_requests = [];
 $conn = getOracleConnection();
 if ($conn) {
+    // Get pending requests
+    $pending_sql = "SELECT 
+                    br.request_id,
+                    br.student_id,
+                    s.full_name as student_name,
+                    b.reference_id,
+                    b.title,
+                    TO_CHAR(br.request_date, 'Mon DD, YYYY HH24:MI') as request_date
+                FROM sys.book_borrowing_requests br
+                JOIN sys.books b ON br.book_id = b.reference_id
+                JOIN sys.students s ON br.student_id = s.student_id
+                WHERE br.status = 'Pending'
+                ORDER BY br.request_date DESC";
+
+    $pending_stmt = oci_parse($conn, $pending_sql);
+    if ($pending_stmt && oci_execute($pending_stmt)) {
+        while ($row = oci_fetch_assoc($pending_stmt)) {
+            $pending_requests[] = [
+                'request_id' => $row['REQUEST_ID'],
+                'student_id' => $row['STUDENT_ID'],
+                'student_name' => $row['STUDENT_NAME'],
+                'reference_id' => $row['REFERENCE_ID'],
+                'title' => $row['TITLE'],
+                'request_date' => $row['REQUEST_DATE']
+            ];
+        }
+        oci_free_statement($pending_stmt);
+    }
+
+    // Get approved/active borrowings
     $sql = "SELECT 
-                bl.borrow_date,
-                bl.return_date,
+                TO_CHAR(bl.borrow_date, 'Mon DD, YYYY') as borrow_date,
+                TO_CHAR(bl.return_date, 'Mon DD, YYYY') as return_date,
                 s.student_id,
                 s.full_name as student_name,
                 b.reference_id,
@@ -68,6 +99,54 @@ if ($conn) {
         oci_free_statement($stmt);
     }
     oci_close($conn);
+}
+
+// Handle request approval/rejection
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $request_id = $_POST['request_id'] ?? null;
+    $action = $_POST['action'];
+    
+    if ($request_id && ($action === 'approve' || $action === 'reject')) {
+        $conn = getOracleConnection();
+        if ($conn) {
+            $status = $action === 'approve' ? 'Approved' : 'Rejected';
+            $admin = $_SESSION['admin_username'];
+            
+            $sql = "UPDATE sys.book_borrowing_requests 
+                    SET status = :status,
+                        approved_by = :admin,
+                        approval_date = SYSTIMESTAMP
+                    WHERE request_id = :request_id";
+            
+            $stmt = oci_parse($conn, $sql);
+            if ($stmt) {
+                oci_bind_by_name($stmt, ":status", $status);
+                oci_bind_by_name($stmt, ":admin", $admin);
+                oci_bind_by_name($stmt, ":request_id", $request_id);
+                
+                if (oci_execute($stmt)) {
+                    // If approved, create a book loan record
+                    if ($action === 'approve') {
+                        $loan_sql = "INSERT INTO sys.book_loans (student_id, book_id, borrow_date, return_date)
+                                    SELECT student_id, book_id, SYSDATE, SYSDATE + 14
+                                    FROM sys.book_borrowing_requests
+                                    WHERE request_id = :request_id";
+                        
+                        $loan_stmt = oci_parse($conn, $loan_sql);
+                        if ($loan_stmt) {
+                            oci_bind_by_name($loan_stmt, ":request_id", $request_id);
+                            oci_execute($loan_stmt);
+                            oci_free_statement($loan_stmt);
+                        }
+                    }
+                    
+                    header("Location: borrowing.php?success=" . ($action === 'approve' ? 'approved' : 'rejected'));
+                    exit();
+                }
+            }
+            oci_close($conn);
+        }
+    }
 }
 
 ?>
@@ -120,7 +199,11 @@ if ($conn) {
         }
 
         .main-content {
-            transition: margin-left 0.3s ease-in-out;
+            margin-left: 16rem;
+        }
+        
+        .main-content.collapsed {
+            margin-left: 70px;
         }
 
         /* Status colors */
@@ -152,31 +235,31 @@ if ($conn) {
             <nav class="flex-1">
                 <ul>
                     <li class="mb-2">
-                        <a href="dashboard.php" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
+                        <a href="dashboard" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
                             <span class="nav-text">Access Logs</span>
                         </a>
                     </li>
                     <li class="mb-2">
-                        <a href="rooms.php" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
+                        <a href="rooms" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
                             <span class="nav-text">Rooms</span>
                         </a>
                     </li>
                     <li class="mb-2">
-                        <a href="pcs.php" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
+                        <a href="pcs" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                             <span class="nav-text">PC's</span>
                         </a>
                     </li>
                      <li class="mb-2">
-                        <a href="books.php" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
+                        <a href="books" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
                             <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
                             <span class="nav-text">Book Archives</span>
                         </a>
                     </li>
                      <li class="mb-2">
-                        <a href="borrowing.php" class="nav-link flex items-center px-4 py-2 bg-blue-700 rounded-md text-white">
+                        <a href="borrowing" class="nav-link flex items-center px-4 py-2 bg-blue-700 rounded-md text-white">
                            <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             <span class="nav-text">Borrowing</span>
                         </a>
@@ -185,7 +268,7 @@ if ($conn) {
             </nav>
 
             <div class="mt-auto">
-                <a href="logout.php" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
+                <a href="logout" class="nav-link flex items-center px-4 py-2 text-blue-100 hover:bg-blue-800 hover:text-white rounded-md">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     <span class="logout-text">Logout</span>
                 </a>
@@ -217,7 +300,50 @@ if ($conn) {
                         </div>
                     </form>
 
+                    <!-- Pending Book Requests Section -->
+                    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <h2 class="text-xl font-semibold mb-4">Pending Book Requests</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead>
+                                    <tr>
+                                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Student</th>
+                                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Book</th>
+                                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Request Date</th>
+                                        <th class="px-6 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($pending_requests as $request): ?>
+                                    <tr>
+                                        <td class="px-6 py-4 border-b border-gray-200">
+                                            <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($request['student_name']); ?></div>
+                                            <div class="text-sm text-gray-500"><?php echo htmlspecialchars($request['student_id']); ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 border-b border-gray-200">
+                                            <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($request['title']); ?></div>
+                                            <div class="text-sm text-gray-500">ID: <?php echo htmlspecialchars($request['reference_id']); ?></div>
+                                        </td>
+                                        <td class="px-6 py-4 border-b border-gray-200 text-sm text-gray-500">
+                                            <?php echo htmlspecialchars($request['request_date']); ?>
+                                        </td>
+                                        <td class="px-6 py-4 border-b border-gray-200">
+                                            <form method="POST" class="inline-block">
+                                                <input type="hidden" name="request_id" value="<?php echo $request['request_id']; ?>">
+                                                <button type="submit" name="action" value="approve" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 mr-2">Approve</button>
+                                                <button type="submit" name="action" value="reject" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Reject</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Borrowed Books Section -->
                     <div class="bg-white rounded-lg shadow overflow-hidden border border-blue-200">
+                        <h2 class="text-xl font-semibold p-6 mb-4">Book Borrowed</h2>
                         <?php if (empty($borrowed_books) && $has_searched): ?>
                             <div class="p-8 text-center">
                                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -257,7 +383,7 @@ if ($conn) {
                                             <?php foreach ($borrowed_books as $book): ?>
                                                 <tr>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        <?php echo htmlspecialchars(date('M d, Y', strtotime($book['borrow_date']))); ?>
+                                                        <?php echo htmlspecialchars($book['borrow_date']); ?>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                                         <?php echo htmlspecialchars($book['student_name']); ?> 
@@ -294,7 +420,7 @@ if ($conn) {
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                         <?php 
                                                             if (!empty($book['return_date'])) {
-                                                                echo htmlspecialchars(date('M d, Y', strtotime($book['return_date'])));
+                                                                echo htmlspecialchars($book['return_date']);
                                                             } else {
                                                                 echo '—';
                                                             }
@@ -318,9 +444,9 @@ if ($conn) {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('mainContent');
             const sidebarToggle = document.getElementById('sidebarToggle');
-
+            
             let isCollapsed = false;
-
+            
             sidebarToggle.addEventListener('click', function() {
                 isCollapsed = !isCollapsed;
                 
@@ -341,6 +467,14 @@ if ($conn) {
                     icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
                 }
             });
+            
+            // Auto-hide notification after 5 seconds
+            const notification = document.getElementById('notification-alert');
+            if (notification) {
+                setTimeout(function() {
+                    notification.style.display = 'none';
+                }, 5000);
+            }
         });
     </script>
 </body>
