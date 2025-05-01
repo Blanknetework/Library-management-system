@@ -2,6 +2,7 @@
 session_start();
 
 require_once '../config.php';
+require_once '../config/mailer.php';
 
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: admin-login.php");
@@ -13,6 +14,43 @@ $admin_username = $_SESSION['admin_username'] ?? 'Admin';
 // Handle search
 $search_term = isset($_GET['search']) ? trim($_GET['search']) : '';
 $has_searched = isset($_GET['search']);
+
+// Handle email notification
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_notification'])) {
+    $student_id = $_POST['student_id'];
+    $book_title = $_POST['book_title'];
+    $due_date = $_POST['due_date'];
+    
+    // Get student email from database
+    $conn = getOracleConnection();
+    if ($conn) {
+        $sql = "SELECT email, full_name FROM sys.students WHERE student_id = :student_id";
+        $stmt = oci_parse($conn, $sql);
+        if ($stmt) {
+            oci_bind_by_name($stmt, ":student_id", $student_id);
+            if (oci_execute($stmt)) {
+                $row = oci_fetch_assoc($stmt);
+                if ($row) {
+                    $result = sendOverdueNotification(
+                        $row['EMAIL'],
+                        $row['FULL_NAME'],
+                        $book_title,
+                        $due_date
+                    );
+                    if ($result) {
+                        $_SESSION['notification'] = ['type' => 'success', 'message' => 'Notification sent successfully'];
+                    } else {
+                        $_SESSION['notification'] = ['type' => 'error', 'message' => 'Failed to send notification'];
+                    }
+                }
+            }
+            oci_free_statement($stmt);
+        }
+        oci_close($conn);
+    }
+    header("Location: borrowing.php");
+    exit();
+}
 
 // Fetch borrowed books from database
 $borrowed_books = [];
@@ -58,9 +96,8 @@ if ($conn) {
                 b.title,
                 b.quality as condition,
                 CASE 
-                    WHEN bl.return_date IS NOT NULL AND bl.return_date < SYSDATE THEN 'Overdue'
-                    WHEN bl.return_date IS NOT NULL THEN 'In Progress'
-                    ELSE 'Returned'
+                    WHEN bl.return_date < SYSDATE THEN 'Overdue'
+                    ELSE 'In Progress'
                 END as status
             FROM sys.book_loans bl
             JOIN sys.books b ON bl.book_id = b.reference_id
@@ -128,7 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     // If approved, create a book loan record
                     if ($action === 'approve') {
                         $loan_sql = "INSERT INTO sys.book_loans (student_id, book_id, borrow_date, return_date)
-                                    SELECT student_id, book_id, SYSDATE, SYSDATE + 14
+                                    SELECT student_id, book_id, SYSDATE, SYSDATE + 2
                                     FROM sys.book_borrowing_requests
                                     WHERE request_id = :request_id";
                         
@@ -364,6 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Book Condition</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Date Returned</th>
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -371,6 +409,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                             <?php for ($i = 0; $i < 10; $i++): ?>
                                                 <tr>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">&nbsp;</td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
@@ -425,6 +464,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                                                 echo '—';
                                                             }
                                                         ?>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php if ($book['status'] === 'Overdue'): ?>
+                                                            <form method="POST" class="inline-block">
+                                                                <input type="hidden" name="student_id" value="<?php echo htmlspecialchars($book['student_id']); ?>">
+                                                                <input type="hidden" name="book_title" value="<?php echo htmlspecialchars($book['title']); ?>">
+                                                                <input type="hidden" name="due_date" value="<?php echo htmlspecialchars($book['return_date']); ?>">
+                                                                <button type="submit" 
+                                                                        name="send_notification" 
+                                                                        class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                                                    Send Reminder
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>

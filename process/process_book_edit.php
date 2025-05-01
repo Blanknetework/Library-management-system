@@ -21,7 +21,7 @@ try {
     
     // Validate branch
     if (!in_array($branch, ['Main Library', 'Batasan Library', 'SM Library'])) {
-        $branch = 'Main Library'; // Default if invalid
+        $branch = 'Main Library'; 
     }
     
     // Connect to database
