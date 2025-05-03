@@ -1,5 +1,5 @@
 <?php
-require_once 'config/mailer.php';
+require_once '../config/mailer.php';
 
 // Test data
 $studentEmail = 'adamnuevo28@gmail.com'; // The email we added earlier

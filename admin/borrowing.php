@@ -11,6 +11,38 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
 
 $admin_username = $_SESSION['admin_username'] ?? 'Admin';
 
+// Store notification in variable instead of immediately echoing
+$notification_html = '';
+if (isset($_SESSION['notification'])) {
+    $notification = $_SESSION['notification'];
+    $alert_class = $notification['type'] === 'success' ? 'bg-green-500 border-green-600 text-white' : 'bg-red-500 border-red-600 text-white';
+    $notification_html = "<div id='notification-alert' class='fixed top-6 right-6 z-50 flex items-center px-6 py-4 border-l-4 rounded shadow-lg {$alert_class}' role='alert' style='min-width:300px; max-width:90vw; opacity: 1; transition: opacity 0.5s ease-in-out;'>
+            <div class='flex-1'>
+                <strong class='font-bold mr-2'>" . ($notification['type'] === 'success' ? 'Success!' : 'Error!') . "</strong>
+                <span class='block sm:inline'>" . htmlspecialchars($notification['message']) . "</span>
+            </div>
+            <button onclick=\"this.parentNode.style.opacity = '0'; setTimeout(() => this.parentNode.remove(), 500);\" class='ml-4 text-white focus:outline-none'>&times;</button>
+          </div>";
+    
+    // Important: unset the notification after storing it
+    unset($_SESSION['notification']);
+}
+
+// Store notification JS in variable
+$notification_js = "<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const notification = document.getElementById('notification-alert');
+        if (notification) {
+            setTimeout(function() {
+                notification.style.opacity = '0';
+                setTimeout(function() {
+                    notification.remove();
+                }, 500);
+            }, 4000);
+        }
+    });
+</script>";
+
 // Handle search
 $search_term = isset($_GET['search']) ? trim($_GET['search']) : '';
 $has_searched = isset($_GET['search']);
@@ -31,23 +63,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['send_notification']))
             if (oci_execute($stmt)) {
                 $row = oci_fetch_assoc($stmt);
                 if ($row) {
-                    $result = sendOverdueNotification(
-                        $row['EMAIL'],
-                        $row['FULL_NAME'],
-                        $book_title,
-                        $due_date
-                    );
-                    if ($result) {
-                        $_SESSION['notification'] = ['type' => 'success', 'message' => 'Notification sent successfully'];
-                    } else {
-                        $_SESSION['notification'] = ['type' => 'error', 'message' => 'Failed to send notification'];
+                    // Print all debugging info
+                    $_SESSION['notification'] = [
+                        'type' => 'info',
+                        'message' => 'Debug: Student ID=' . $student_id . 
+                                   ', EMAIL=' . $row['EMAIL'] . 
+                                   ', FULL_NAME=' . $row['FULL_NAME'] .
+                                   ', BOOK=' . $book_title .
+                                   ', DUE_DATE=' . $due_date
+                    ];
+                    
+                    // Now try to directly call the email function
+                    try {
+                        $result = sendOverdueNotification(
+                            $row['EMAIL'],
+                            $row['FULL_NAME'],
+                            $book_title,
+                            $due_date
+                        );
+                        
+                        $_SESSION['notification'] = [
+                            'type' => $result['success'] ? 'success' : 'error',
+                            'message' => $result['message']
+                        ];
+                    } catch (Exception $e) {
+                        $_SESSION['notification'] = [
+                            'type' => 'error',
+                            'message' => 'Exception caught: ' . $e->getMessage()
+                        ];
                     }
+                } else {
+                    $_SESSION['notification'] = [
+                        'type' => 'error',
+                        'message' => 'Student record not found for ID: ' . $student_id
+                    ];
                 }
+            } else {
+                $_SESSION['notification'] = [
+                    'type' => 'error',
+                    'message' => 'SQL execution failed'
+                ];
             }
             oci_free_statement($stmt);
+        } else {
+            $_SESSION['notification'] = [
+                'type' => 'error',
+                'message' => 'Failed to prepare SQL statement'
+            ];
         }
         oci_close($conn);
+    } else {
+        $_SESSION['notification'] = [
+            'type' => 'error',
+            'message' => 'Database connection failed'
+        ];
     }
+    
+    // Use a clean redirect to prevent form resubmission and ensure layout is pristine
     header("Location: borrowing.php");
     exit();
 }
@@ -195,6 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     <title>Borrowing - Library Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <?php echo $notification_js; ?>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -256,6 +329,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     </style>
 </head>
 <body class="bg-gray-100">
+    <?php echo $notification_html; ?>
     <div class="flex h-screen bg-gray-100 overflow-hidden">
         <div id="sidebar" class="sidebar fixed inset-y-0 left-0 w-64 bg-blue-900 text-white p-4 flex flex-col">
             <button id="sidebarToggle" class="absolute top-4 right-4 p-1 rounded-md bg-blue-800 text-white hover:bg-blue-700 focus:outline-none">
@@ -521,12 +595,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 }
             });
             
-            // Auto-hide notification after 5 seconds
+            // Handle notification visibility
             const notification = document.getElementById('notification-alert');
             if (notification) {
                 setTimeout(function() {
-                    notification.style.display = 'none';
-                }, 5000);
+                    notification.style.opacity = '0';
+                    setTimeout(function() {
+                        notification.remove();
+                    }, 500);
+                }, 4000);
             }
         });
     </script>
