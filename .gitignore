@@ -8,7 +8,7 @@ composer.lock
 # PHPMailer
 /vendor/phpmailer
 
-# PHPMailer logs
+# PHPMailer lsogs
 /vendor/phpmailer/logs
 
 # PHPMailer cache
@@ -16,5 +16,9 @@ composer.lock
 
 # PHPMailer logs
 /vendor/phpmailer/logs
+
+# PHPUnit
+.phpunit.result.cache
+/phpunit.xml
 
 

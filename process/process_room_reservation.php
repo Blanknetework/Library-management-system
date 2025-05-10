@@ -73,6 +73,7 @@ try {
     FROM room_reservation 
     CROSS JOIN current_time
     WHERE room_id = :room_id 
+    AND status = 'Approved'
     AND (
         (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
          AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
@@ -112,20 +113,22 @@ try {
 
     // Insert the reservation
     $insert_sql = "INSERT INTO room_reservation (
-                      reservation_id,
-                      room_id, 
-                      student_id, 
-                      start_time, 
-                      end_time, 
-                      purpose
-                  ) VALUES (
-                      :reservation_id,
-                      :room_id,
-                      :student_id,
-                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
-                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
-                      :purpose
-                  )";
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )";
 
     error_log("Executing insert query with params: " . print_r([
         'reservation_id' => $reservation_id,

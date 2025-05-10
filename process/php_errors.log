@@ -1563,3 +1563,1746 @@ Stack trace:
 [26-Apr-2025 21:15:09 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 25
 [26-Apr-2025 21:15:09 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 26
 [26-Apr-2025 21:15:09 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 27
+[09-May-2025 08:48:36 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 21
+[09-May-2025 08:48:36 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 22
+[09-May-2025 08:48:36 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 23
+[09-May-2025 08:48:36 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 24
+[09-May-2025 08:48:36 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 25
+[09-May-2025 08:48:36 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 26
+[09-May-2025 08:48:36 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 27
+[10-May-2025 18:39:59 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2441","purpose":"group_study","start_time":"00:39","end_time":"02:39"}
+[11-May-2025 00:39:59 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2441
+    [purpose] => group_study
+    [start_time] => 00:39
+    [end_time] => 02:39
+)
+
+[11-May-2025 00:39:59 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 00:39:59 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 00:39:59 Asia/Manila] Start time from request: 00:39
+[11-May-2025 00:39:59 Asia/Manila] End time from request: 02:39
+[11-May-2025 00:39:59 Asia/Manila] Combined start time: 2025-05-11 00:39
+[11-May-2025 00:39:59 Asia/Manila] Combined end time: 2025-05-11 02:39
+[11-May-2025 00:39:59 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 00:39, End: 2025-05-11 02:39
+[11-May-2025 00:39:59 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:39
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:39
+[11-May-2025 00:39:59 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 00:39:59 Asia/Manila] Generated reservation ID: 16
+[11-May-2025 00:39:59 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 16
+    [room_id] => 2
+    [student_id] => 23-2441
+    [start_time] => 2025-05-11 00:39
+    [end_time] => 2025-05-11 02:39
+    [purpose] => group_study
+)
+
+[11-May-2025 00:39:59 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :reservation_id: 16
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :student_id: 23-2441
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:39
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:39
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 00:39:59 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 00:39:59 Asia/Manila] Binding parameter :reservation_id: 16
+[11-May-2025 00:39:59 Asia/Manila] Room reservation successful: Room 2 reserved from 2025-05-11 00:39:00 to 2025-05-11 02:39:00
+[10-May-2025 18:48:33 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2441","purpose":"group_study","start_time":"00:48","end_time":"02:48"}
+[11-May-2025 00:48:33 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2441
+    [purpose] => group_study
+    [start_time] => 00:48
+    [end_time] => 02:48
+)
+
+[11-May-2025 00:48:33 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 00:48:33 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 00:48:33 Asia/Manila] Start time from request: 00:48
+[11-May-2025 00:48:33 Asia/Manila] End time from request: 02:48
+[11-May-2025 00:48:33 Asia/Manila] Combined start time: 2025-05-11 00:48
+[11-May-2025 00:48:33 Asia/Manila] Combined end time: 2025-05-11 02:48
+[11-May-2025 00:48:33 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 00:48, End: 2025-05-11 02:48
+[11-May-2025 00:48:33 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:48
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:48
+[11-May-2025 00:48:33 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 00:48:33 Asia/Manila] Generated reservation ID: 17
+[11-May-2025 00:48:33 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 17
+    [room_id] => 1
+    [student_id] => 23-2441
+    [start_time] => 2025-05-11 00:48
+    [end_time] => 2025-05-11 02:48
+    [purpose] => group_study
+)
+
+[11-May-2025 00:48:33 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :reservation_id: 17
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :student_id: 23-2441
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:48
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:48
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 00:48:33 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 00:48:33 Asia/Manila] Binding parameter :reservation_id: 17
+[11-May-2025 00:48:33 Asia/Manila] Room reservation successful: Room 1 reserved from 2025-05-11 00:48:00 to 2025-05-11 02:48:00
+[10-May-2025 18:55:10 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"group_study","start_time":"00:55","end_time":"02:55"}
+[11-May-2025 00:55:10 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 00:55
+    [end_time] => 02:55
+)
+
+[11-May-2025 00:55:10 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 00:55:10 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 00:55:10 Asia/Manila] Start time from request: 00:55
+[11-May-2025 00:55:10 Asia/Manila] End time from request: 02:55
+[11-May-2025 00:55:10 Asia/Manila] Combined start time: 2025-05-11 00:55
+[11-May-2025 00:55:10 Asia/Manila] Combined end time: 2025-05-11 02:55
+[11-May-2025 00:55:10 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 00:55, End: 2025-05-11 02:55
+[11-May-2025 00:55:10 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 00:55:10 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 00:55:10 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:55
+[11-May-2025 00:55:10 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:55
+[11-May-2025 00:55:10 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 00:55:10 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 18:55:14 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"00:55","end_time":"02:55"}
+[11-May-2025 00:55:14 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 00:55
+    [end_time] => 02:55
+)
+
+[11-May-2025 00:55:14 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 00:55:14 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 00:55:14 Asia/Manila] Start time from request: 00:55
+[11-May-2025 00:55:14 Asia/Manila] End time from request: 02:55
+[11-May-2025 00:55:14 Asia/Manila] Combined start time: 2025-05-11 00:55
+[11-May-2025 00:55:14 Asia/Manila] Combined end time: 2025-05-11 02:55
+[11-May-2025 00:55:14 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 00:55, End: 2025-05-11 02:55
+[11-May-2025 00:55:14 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 00:55:14 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 00:55:14 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:55
+[11-May-2025 00:55:14 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:55
+[11-May-2025 00:55:14 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 00:55:14 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 18:55:18 Europe/Berlin] Received JSON input: {"room_id":"3","student_id":"23-2449","purpose":"group_study","start_time":"00:55","end_time":"02:55"}
+[11-May-2025 00:55:18 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 3
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 00:55
+    [end_time] => 02:55
+)
+
+[11-May-2025 00:55:18 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 00:55:18 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 00:55:18 Asia/Manila] Start time from request: 00:55
+[11-May-2025 00:55:18 Asia/Manila] End time from request: 02:55
+[11-May-2025 00:55:18 Asia/Manila] Combined start time: 2025-05-11 00:55
+[11-May-2025 00:55:18 Asia/Manila] Combined end time: 2025-05-11 02:55
+[11-May-2025 00:55:18 Asia/Manila] Executing check query with params - Room ID: 3, Start: 2025-05-11 00:55, End: 2025-05-11 02:55
+[11-May-2025 00:55:18 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:55
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:55
+[11-May-2025 00:55:18 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 00:55:18 Asia/Manila] Generated reservation ID: 18
+[11-May-2025 00:55:18 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 18
+    [room_id] => 3
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 00:55
+    [end_time] => 2025-05-11 02:55
+    [purpose] => group_study
+)
+
+[11-May-2025 00:55:18 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :reservation_id: 18
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:55
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:55
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 00:55:18 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 00:55:18 Asia/Manila] Binding parameter :reservation_id: 18
+[11-May-2025 00:55:18 Asia/Manila] Room reservation successful: Room 3 reserved from 2025-05-11 00:55:00 to 2025-05-11 02:55:00
+[10-May-2025 18:55:56 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"00:55","end_time":"02:55"}
+[11-May-2025 00:55:56 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 00:55
+    [end_time] => 02:55
+)
+
+[11-May-2025 00:55:57 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 00:55:57 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 00:55:57 Asia/Manila] Start time from request: 00:55
+[11-May-2025 00:55:57 Asia/Manila] End time from request: 02:55
+[11-May-2025 00:55:57 Asia/Manila] Combined start time: 2025-05-11 00:55
+[11-May-2025 00:55:57 Asia/Manila] Combined end time: 2025-05-11 02:55
+[11-May-2025 00:55:57 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 00:55, End: 2025-05-11 02:55
+[11-May-2025 00:55:57 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 00:55:57 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 00:55:57 Asia/Manila] Binding parameter :start_time: 2025-05-11 00:55
+[11-May-2025 00:55:57 Asia/Manila] Binding parameter :end_time: 2025-05-11 02:55
+[11-May-2025 00:55:57 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 00:55:57 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:01:42 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2450","purpose":"group_study","start_time":"01:01","end_time":"03:01"}
+[11-May-2025 01:01:42 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2450
+    [purpose] => group_study
+    [start_time] => 01:01
+    [end_time] => 03:01
+)
+
+[11-May-2025 01:01:42 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:01:42 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:01:42 Asia/Manila] Start time from request: 01:01
+[11-May-2025 01:01:42 Asia/Manila] End time from request: 03:01
+[11-May-2025 01:01:42 Asia/Manila] Combined start time: 2025-05-11 01:01
+[11-May-2025 01:01:42 Asia/Manila] Combined end time: 2025-05-11 03:01
+[11-May-2025 01:01:42 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:01, End: 2025-05-11 03:01
+[11-May-2025 01:01:42 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:01:42 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:01:42 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:01
+[11-May-2025 01:01:42 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:01
+[11-May-2025 01:01:42 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:01:42 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:05:13 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"01:05","end_time":"03:05"}
+[11-May-2025 01:05:13 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:05
+    [end_time] => 03:05
+)
+
+[11-May-2025 01:05:13 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:05:13 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:05:13 Asia/Manila] Start time from request: 01:05
+[11-May-2025 01:05:13 Asia/Manila] End time from request: 03:05
+[11-May-2025 01:05:13 Asia/Manila] Combined start time: 2025-05-11 01:05
+[11-May-2025 01:05:13 Asia/Manila] Combined end time: 2025-05-11 03:05
+[11-May-2025 01:05:13 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:05, End: 2025-05-11 03:05
+[11-May-2025 01:05:13 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:05:13 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:05:13 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:05
+[11-May-2025 01:05:13 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:05
+[11-May-2025 01:05:13 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:05:13 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:08:02 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"01:08","end_time":"03:08"}
+[11-May-2025 01:08:02 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:08
+    [end_time] => 03:08
+)
+
+[11-May-2025 01:08:02 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:08:02 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:08:02 Asia/Manila] Start time from request: 01:08
+[11-May-2025 01:08:02 Asia/Manila] End time from request: 03:08
+[11-May-2025 01:08:02 Asia/Manila] Combined start time: 2025-05-11 01:08
+[11-May-2025 01:08:02 Asia/Manila] Combined end time: 2025-05-11 03:08
+[11-May-2025 01:08:02 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:08, End: 2025-05-11 03:08
+[11-May-2025 01:08:02 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:08:02 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:08:02 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:08
+[11-May-2025 01:08:02 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:08
+[11-May-2025 01:08:02 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:08:02 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:11:21 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"01:11","end_time":"03:11"}
+[11-May-2025 01:11:21 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:11
+    [end_time] => 03:11
+)
+
+[11-May-2025 01:11:21 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:11:21 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:11:21 Asia/Manila] Start time from request: 01:11
+[11-May-2025 01:11:21 Asia/Manila] End time from request: 03:11
+[11-May-2025 01:11:21 Asia/Manila] Combined start time: 2025-05-11 01:11
+[11-May-2025 01:11:21 Asia/Manila] Combined end time: 2025-05-11 03:11
+[11-May-2025 01:11:21 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:11, End: 2025-05-11 03:11
+[11-May-2025 01:11:22 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:11:22 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:11:22 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:11
+[11-May-2025 01:11:22 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:11
+[11-May-2025 01:11:22 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:11:22 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:11:39 Europe/Berlin] Received JSON input: {"room_id":"3","student_id":"23-2449","purpose":"team_meeting","start_time":"01:11","end_time":"03:11"}
+[11-May-2025 01:11:39 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 3
+    [student_id] => 23-2449
+    [purpose] => team_meeting
+    [start_time] => 01:11
+    [end_time] => 03:11
+)
+
+[11-May-2025 01:11:39 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:11:39 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:11:39 Asia/Manila] Start time from request: 01:11
+[11-May-2025 01:11:39 Asia/Manila] End time from request: 03:11
+[11-May-2025 01:11:39 Asia/Manila] Combined start time: 2025-05-11 01:11
+[11-May-2025 01:11:39 Asia/Manila] Combined end time: 2025-05-11 03:11
+[11-May-2025 01:11:39 Asia/Manila] Executing check query with params - Room ID: 3, Start: 2025-05-11 01:11, End: 2025-05-11 03:11
+[11-May-2025 01:11:39 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:11:39 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 01:11:39 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:11
+[11-May-2025 01:11:39 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:11
+[11-May-2025 01:11:39 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:11:39 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:11:50 Europe/Berlin] Received JSON input: {"room_id":"4","student_id":"23-2449","purpose":"presentation","start_time":"01:11","end_time":"03:11"}
+[11-May-2025 01:11:50 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 4
+    [student_id] => 23-2449
+    [purpose] => presentation
+    [start_time] => 01:11
+    [end_time] => 03:11
+)
+
+[11-May-2025 01:11:51 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:11:51 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:11:51 Asia/Manila] Start time from request: 01:11
+[11-May-2025 01:11:51 Asia/Manila] End time from request: 03:11
+[11-May-2025 01:11:51 Asia/Manila] Combined start time: 2025-05-11 01:11
+[11-May-2025 01:11:51 Asia/Manila] Combined end time: 2025-05-11 03:11
+[11-May-2025 01:11:51 Asia/Manila] Executing check query with params - Room ID: 4, Start: 2025-05-11 01:11, End: 2025-05-11 03:11
+[11-May-2025 01:11:51 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :room_id: 4
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:11
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:11
+[11-May-2025 01:11:51 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 01:11:51 Asia/Manila] Generated reservation ID: 19
+[11-May-2025 01:11:51 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 19
+    [room_id] => 4
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 01:11
+    [end_time] => 2025-05-11 03:11
+    [purpose] => presentation
+)
+
+[11-May-2025 01:11:51 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :reservation_id: 19
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :room_id: 4
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:11
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:11
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :purpose: presentation
+[11-May-2025 01:11:51 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 01:11:51 Asia/Manila] Binding parameter :reservation_id: 19
+[11-May-2025 01:11:51 Asia/Manila] Room reservation successful: Room 4 reserved from 2025-05-11 01:11:00 to 2025-05-11 03:11:00
+[10-May-2025 19:12:03 Europe/Berlin] Received JSON input: {"room_id":"4","student_id":"23-2449","purpose":"team_meeting","start_time":"01:12","end_time":"03:12"}
+[11-May-2025 01:12:03 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 4
+    [student_id] => 23-2449
+    [purpose] => team_meeting
+    [start_time] => 01:12
+    [end_time] => 03:12
+)
+
+[11-May-2025 01:12:04 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:12:04 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:12:04 Asia/Manila] Start time from request: 01:12
+[11-May-2025 01:12:04 Asia/Manila] End time from request: 03:12
+[11-May-2025 01:12:04 Asia/Manila] Combined start time: 2025-05-11 01:12
+[11-May-2025 01:12:04 Asia/Manila] Combined end time: 2025-05-11 03:12
+[11-May-2025 01:12:04 Asia/Manila] Executing check query with params - Room ID: 4, Start: 2025-05-11 01:12, End: 2025-05-11 03:12
+[11-May-2025 01:12:04 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:12:04 Asia/Manila] Binding parameter :room_id: 4
+[11-May-2025 01:12:04 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:12
+[11-May-2025 01:12:04 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:12
+[11-May-2025 01:12:04 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:12:04 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:16:59 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"01:16","end_time":"03:16"}
+[11-May-2025 01:16:59 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:16
+    [end_time] => 03:16
+)
+
+[11-May-2025 01:17:00 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:17:00 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:17:00 Asia/Manila] Start time from request: 01:16
+[11-May-2025 01:17:00 Asia/Manila] End time from request: 03:16
+[11-May-2025 01:17:00 Asia/Manila] Combined start time: 2025-05-11 01:16
+[11-May-2025 01:17:00 Asia/Manila] Combined end time: 2025-05-11 03:16
+[11-May-2025 01:17:00 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:16, End: 2025-05-11 03:16
+[11-May-2025 01:17:00 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:17:00 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:17:00 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:16
+[11-May-2025 01:17:00 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:16
+[11-May-2025 01:17:01 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:17:01 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:17:10 Europe/Berlin] Received JSON input: {"room_id":"5","student_id":"23-2449","purpose":"group_study","start_time":"01:16","end_time":"03:16"}
+[11-May-2025 01:17:10 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 5
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:16
+    [end_time] => 03:16
+)
+
+[11-May-2025 01:17:10 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:17:10 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:17:10 Asia/Manila] Start time from request: 01:16
+[11-May-2025 01:17:10 Asia/Manila] End time from request: 03:16
+[11-May-2025 01:17:10 Asia/Manila] Combined start time: 2025-05-11 01:16
+[11-May-2025 01:17:10 Asia/Manila] Combined end time: 2025-05-11 03:16
+[11-May-2025 01:17:10 Asia/Manila] Executing check query with params - Room ID: 5, Start: 2025-05-11 01:16, End: 2025-05-11 03:16
+[11-May-2025 01:17:10 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :room_id: 5
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:16
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:16
+[11-May-2025 01:17:10 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 01:17:10 Asia/Manila] Generated reservation ID: 20
+[11-May-2025 01:17:10 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 20
+    [room_id] => 5
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 01:16
+    [end_time] => 2025-05-11 03:16
+    [purpose] => group_study
+)
+
+[11-May-2025 01:17:10 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :reservation_id: 20
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :room_id: 5
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:16
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:16
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 01:17:10 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 01:17:10 Asia/Manila] Binding parameter :reservation_id: 20
+[11-May-2025 01:17:10 Asia/Manila] Room reservation successful: Room 5 reserved from 2025-05-11 01:16:00 to 2025-05-11 03:16:00
+[10-May-2025 19:20:07 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"group_study","start_time":"01:20","end_time":"03:20"}
+[11-May-2025 01:20:07 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:20
+    [end_time] => 03:20
+)
+
+[11-May-2025 01:20:07 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:20:07 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:20:07 Asia/Manila] Start time from request: 01:20
+[11-May-2025 01:20:07 Asia/Manila] End time from request: 03:20
+[11-May-2025 01:20:07 Asia/Manila] Combined start time: 2025-05-11 01:20
+[11-May-2025 01:20:07 Asia/Manila] Combined end time: 2025-05-11 03:20
+[11-May-2025 01:20:07 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 01:20, End: 2025-05-11 03:20
+[11-May-2025 01:20:07 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:20:07 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:20:07 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:20
+[11-May-2025 01:20:07 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:20
+[11-May-2025 01:20:07 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:20:07 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:20:25 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"team_meeting","start_time":"01:20","end_time":"03:20"}
+[11-May-2025 01:20:25 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => team_meeting
+    [start_time] => 01:20
+    [end_time] => 03:20
+)
+
+[11-May-2025 01:20:25 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:20:25 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:20:25 Asia/Manila] Start time from request: 01:20
+[11-May-2025 01:20:25 Asia/Manila] End time from request: 03:20
+[11-May-2025 01:20:25 Asia/Manila] Combined start time: 2025-05-11 01:20
+[11-May-2025 01:20:25 Asia/Manila] Combined end time: 2025-05-11 03:20
+[11-May-2025 01:20:25 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:20, End: 2025-05-11 03:20
+[11-May-2025 01:20:25 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:20:25 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:20:25 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:20
+[11-May-2025 01:20:25 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:20
+[11-May-2025 01:20:25 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:20:25 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:25:57 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"group_study","start_time":"01:25","end_time":"03:25"}
+[11-May-2025 01:25:57 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:25
+    [end_time] => 03:25
+)
+
+[11-May-2025 01:25:57 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:25:57 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:25:57 Asia/Manila] Start time from request: 01:25
+[11-May-2025 01:25:57 Asia/Manila] End time from request: 03:25
+[11-May-2025 01:25:57 Asia/Manila] Combined start time: 2025-05-11 01:25
+[11-May-2025 01:25:57 Asia/Manila] Combined end time: 2025-05-11 03:25
+[11-May-2025 01:25:57 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 01:25, End: 2025-05-11 03:25
+[11-May-2025 01:25:57 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:25
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:25
+[11-May-2025 01:25:57 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 01:25:57 Asia/Manila] Generated reservation ID: 21
+[11-May-2025 01:25:57 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 21
+    [room_id] => 1
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 01:25
+    [end_time] => 2025-05-11 03:25
+    [purpose] => group_study
+)
+
+[11-May-2025 01:25:57 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+                      reservation_id,
+                      room_id, 
+                      student_id, 
+                      start_time, 
+                      end_time, 
+                      purpose
+                  ) VALUES (
+                      :reservation_id,
+                      :room_id,
+                      :student_id,
+                      CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+                      :purpose
+                  )
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :reservation_id: 21
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:25
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:25
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 01:25:57 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 01:25:57 Asia/Manila] Binding parameter :reservation_id: 21
+[11-May-2025 01:25:57 Asia/Manila] Room reservation successful: Room 1 reserved from 2025-05-11 01:25:00 to 2025-05-11 03:25:00
+[10-May-2025 19:45:39 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"group_study","start_time":"01:45","end_time":"03:45"}
+[11-May-2025 01:45:39 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:45
+    [end_time] => 03:45
+)
+
+[11-May-2025 01:45:39 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:45:39 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:45:39 Asia/Manila] Start time from request: 01:45
+[11-May-2025 01:45:39 Asia/Manila] End time from request: 03:45
+[11-May-2025 01:45:39 Asia/Manila] Combined start time: 2025-05-11 01:45
+[11-May-2025 01:45:39 Asia/Manila] Combined end time: 2025-05-11 03:45
+[11-May-2025 01:45:39 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 01:45, End: 2025-05-11 03:45
+[11-May-2025 01:45:39 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:45:39 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:45:39 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:45
+[11-May-2025 01:45:39 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:45
+[11-May-2025 01:45:39 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:45:39 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:45:42 Europe/Berlin] Received JSON input: {"room_id":"4","student_id":"23-2449","purpose":"group_study","start_time":"01:45","end_time":"03:45"}
+[11-May-2025 01:45:42 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 4
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:45
+    [end_time] => 03:45
+)
+
+[11-May-2025 01:45:42 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:45:42 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:45:42 Asia/Manila] Start time from request: 01:45
+[11-May-2025 01:45:42 Asia/Manila] End time from request: 03:45
+[11-May-2025 01:45:42 Asia/Manila] Combined start time: 2025-05-11 01:45
+[11-May-2025 01:45:42 Asia/Manila] Combined end time: 2025-05-11 03:45
+[11-May-2025 01:45:42 Asia/Manila] Executing check query with params - Room ID: 4, Start: 2025-05-11 01:45, End: 2025-05-11 03:45
+[11-May-2025 01:45:42 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:45:42 Asia/Manila] Binding parameter :room_id: 4
+[11-May-2025 01:45:42 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:45
+[11-May-2025 01:45:42 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:45
+[11-May-2025 01:45:42 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:45:42 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:45:47 Europe/Berlin] Received JSON input: {"room_id":"5","student_id":"23-2449","purpose":"group_study","start_time":"01:45","end_time":"03:45"}
+[11-May-2025 01:45:47 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 5
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:45
+    [end_time] => 03:45
+)
+
+[11-May-2025 01:45:47 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:45:47 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:45:47 Asia/Manila] Start time from request: 01:45
+[11-May-2025 01:45:47 Asia/Manila] End time from request: 03:45
+[11-May-2025 01:45:47 Asia/Manila] Combined start time: 2025-05-11 01:45
+[11-May-2025 01:45:47 Asia/Manila] Combined end time: 2025-05-11 03:45
+[11-May-2025 01:45:47 Asia/Manila] Executing check query with params - Room ID: 5, Start: 2025-05-11 01:45, End: 2025-05-11 03:45
+[11-May-2025 01:45:47 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:45:47 Asia/Manila] Binding parameter :room_id: 5
+[11-May-2025 01:45:47 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:45
+[11-May-2025 01:45:47 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:45
+[11-May-2025 01:45:47 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:45:47 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:48:38 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"group_study","start_time":"01:48","end_time":"03:48"}
+[11-May-2025 01:48:38 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:48
+    [end_time] => 03:48
+)
+
+[11-May-2025 01:48:38 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:48:38 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:48:38 Asia/Manila] Start time from request: 01:48
+[11-May-2025 01:48:38 Asia/Manila] End time from request: 03:48
+[11-May-2025 01:48:38 Asia/Manila] Combined start time: 2025-05-11 01:48
+[11-May-2025 01:48:38 Asia/Manila] Combined end time: 2025-05-11 03:48
+[11-May-2025 01:48:38 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 01:48, End: 2025-05-11 03:48
+[11-May-2025 01:48:38 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:48
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:48
+[11-May-2025 01:48:38 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 01:48:38 Asia/Manila] Generated reservation ID: 22
+[11-May-2025 01:48:38 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 22
+    [room_id] => 1
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 01:48
+    [end_time] => 2025-05-11 03:48
+    [purpose] => group_study
+)
+
+[11-May-2025 01:48:38 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :reservation_id: 22
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:48
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:48
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 01:48:38 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 01:48:38 Asia/Manila] Binding parameter :reservation_id: 22
+[11-May-2025 01:48:38 Asia/Manila] Room reservation successful: Room 1 reserved from 2025-05-11 01:48:00 to 2025-05-11 03:48:00
+[10-May-2025 19:52:35 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"group_study","start_time":"01:52","end_time":"03:52"}
+[11-May-2025 01:52:35 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:52
+    [end_time] => 03:52
+)
+
+[11-May-2025 01:52:35 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:52:35 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:52:35 Asia/Manila] Start time from request: 01:52
+[11-May-2025 01:52:35 Asia/Manila] End time from request: 03:52
+[11-May-2025 01:52:35 Asia/Manila] Combined start time: 2025-05-11 01:52
+[11-May-2025 01:52:35 Asia/Manila] Combined end time: 2025-05-11 03:52
+[11-May-2025 01:52:35 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 01:52, End: 2025-05-11 03:52
+[11-May-2025 01:52:35 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:52
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:52
+[11-May-2025 01:52:35 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 01:52:35 Asia/Manila] Generated reservation ID: 23
+[11-May-2025 01:52:35 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 23
+    [room_id] => 1
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 01:52
+    [end_time] => 2025-05-11 03:52
+    [purpose] => group_study
+)
+
+[11-May-2025 01:52:35 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :reservation_id: 23
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:52
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:52
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 01:52:35 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 01:52:35 Asia/Manila] Binding parameter :reservation_id: 23
+[11-May-2025 01:52:35 Asia/Manila] Room reservation successful: Room 1 reserved from 2025-05-11 01:52:00 to 2025-05-11 03:52:00
+[10-May-2025 19:52:45 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"01:52","end_time":"03:52"}
+[11-May-2025 01:52:45 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:52
+    [end_time] => 03:52
+)
+
+[11-May-2025 01:52:45 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:52:45 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:52:45 Asia/Manila] Start time from request: 01:52
+[11-May-2025 01:52:45 Asia/Manila] End time from request: 03:52
+[11-May-2025 01:52:45 Asia/Manila] Combined start time: 2025-05-11 01:52
+[11-May-2025 01:52:45 Asia/Manila] Combined end time: 2025-05-11 03:52
+[11-May-2025 01:52:45 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:52, End: 2025-05-11 03:52
+[11-May-2025 01:52:45 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:52
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:52
+[11-May-2025 01:52:45 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 01:52:45 Asia/Manila] Generated reservation ID: 24
+[11-May-2025 01:52:45 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 24
+    [room_id] => 2
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 01:52
+    [end_time] => 2025-05-11 03:52
+    [purpose] => group_study
+)
+
+[11-May-2025 01:52:45 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :reservation_id: 24
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:52
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:52
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 01:52:45 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 01:52:45 Asia/Manila] Binding parameter :reservation_id: 24
+[11-May-2025 01:52:45 Asia/Manila] Room reservation successful: Room 2 reserved from 2025-05-11 01:52:00 to 2025-05-11 03:52:00
+[10-May-2025 19:53:20 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"team_meeting","start_time":"01:53","end_time":"03:53"}
+[11-May-2025 01:53:20 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => team_meeting
+    [start_time] => 01:53
+    [end_time] => 03:53
+)
+
+[11-May-2025 01:53:20 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:53:20 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:53:20 Asia/Manila] Start time from request: 01:53
+[11-May-2025 01:53:20 Asia/Manila] End time from request: 03:53
+[11-May-2025 01:53:20 Asia/Manila] Combined start time: 2025-05-11 01:53
+[11-May-2025 01:53:20 Asia/Manila] Combined end time: 2025-05-11 03:53
+[11-May-2025 01:53:20 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 01:53, End: 2025-05-11 03:53
+[11-May-2025 01:53:20 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:53:20 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:53:20 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:53
+[11-May-2025 01:53:20 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:53
+[11-May-2025 01:53:20 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:53:20 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:56:29 Europe/Berlin] Received JSON input: {"room_id":"1","student_id":"23-2449","purpose":"group_study","start_time":"01:56","end_time":"03:56"}
+[11-May-2025 01:56:29 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 1
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:56
+    [end_time] => 03:56
+)
+
+[11-May-2025 01:56:29 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:56:29 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:56:29 Asia/Manila] Start time from request: 01:56
+[11-May-2025 01:56:29 Asia/Manila] End time from request: 03:56
+[11-May-2025 01:56:29 Asia/Manila] Combined start time: 2025-05-11 01:56
+[11-May-2025 01:56:29 Asia/Manila] Combined end time: 2025-05-11 03:56
+[11-May-2025 01:56:29 Asia/Manila] Executing check query with params - Room ID: 1, Start: 2025-05-11 01:56, End: 2025-05-11 03:56
+[11-May-2025 01:56:29 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:56:29 Asia/Manila] Binding parameter :room_id: 1
+[11-May-2025 01:56:29 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:56
+[11-May-2025 01:56:29 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:56
+[11-May-2025 01:56:29 Asia/Manila] Error in process_room_reservation.php: Room is already reserved for this time period
+[11-May-2025 01:56:29 Asia/Manila] Stack trace: #0 {main}
+[10-May-2025 19:56:48 Europe/Berlin] Received JSON input: {"room_id":"2","student_id":"23-2449","purpose":"group_study","start_time":"01:56","end_time":"03:56"}
+[11-May-2025 01:56:48 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 2
+    [student_id] => 23-2449
+    [purpose] => group_study
+    [start_time] => 01:56
+    [end_time] => 03:56
+)
+
+[11-May-2025 01:56:48 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 01:56:48 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 01:56:48 Asia/Manila] Start time from request: 01:56
+[11-May-2025 01:56:48 Asia/Manila] End time from request: 03:56
+[11-May-2025 01:56:48 Asia/Manila] Combined start time: 2025-05-11 01:56
+[11-May-2025 01:56:48 Asia/Manila] Combined end time: 2025-05-11 03:56
+[11-May-2025 01:56:48 Asia/Manila] Executing check query with params - Room ID: 2, Start: 2025-05-11 01:56, End: 2025-05-11 03:56
+[11-May-2025 01:56:48 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:56
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:56
+[11-May-2025 01:56:48 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 01:56:48 Asia/Manila] Generated reservation ID: 25
+[11-May-2025 01:56:48 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 25
+    [room_id] => 2
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 01:56
+    [end_time] => 2025-05-11 03:56
+    [purpose] => group_study
+)
+
+[11-May-2025 01:56:48 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :reservation_id: 25
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :room_id: 2
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :start_time: 2025-05-11 01:56
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :end_time: 2025-05-11 03:56
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :purpose: group_study
+[11-May-2025 01:56:48 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 01:56:48 Asia/Manila] Binding parameter :reservation_id: 25
+[11-May-2025 01:56:48 Asia/Manila] Room reservation successful: Room 2 reserved from 2025-05-11 01:56:00 to 2025-05-11 03:56:00
+[10-May-2025 20:04:20 Europe/Berlin] Received JSON input: {"room_id":"3","student_id":"23-2449","purpose":"team_meeting","start_time":"02:04","end_time":"04:04"}
+[11-May-2025 02:04:20 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 3
+    [student_id] => 23-2449
+    [purpose] => team_meeting
+    [start_time] => 02:04
+    [end_time] => 04:04
+)
+
+[11-May-2025 02:04:20 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 02:04:20 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 02:04:20 Asia/Manila] Start time from request: 02:04
+[11-May-2025 02:04:20 Asia/Manila] End time from request: 04:04
+[11-May-2025 02:04:20 Asia/Manila] Combined start time: 2025-05-11 02:04
+[11-May-2025 02:04:20 Asia/Manila] Combined end time: 2025-05-11 04:04
+[11-May-2025 02:04:20 Asia/Manila] Executing check query with params - Room ID: 3, Start: 2025-05-11 02:04, End: 2025-05-11 04:04
+[11-May-2025 02:04:20 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:04
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:04
+[11-May-2025 02:04:20 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 02:04:20 Asia/Manila] Generated reservation ID: 26
+[11-May-2025 02:04:20 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 26
+    [room_id] => 3
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 02:04
+    [end_time] => 2025-05-11 04:04
+    [purpose] => team_meeting
+)
+
+[11-May-2025 02:04:20 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :reservation_id: 26
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:04
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:04
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :purpose: team_meeting
+[11-May-2025 02:04:20 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 02:04:20 Asia/Manila] Binding parameter :reservation_id: 26
+[11-May-2025 02:04:20 Asia/Manila] Room reservation successful: Room 3 reserved from 2025-05-11 02:04:00 to 2025-05-11 04:04:00
+[10-May-2025 20:04:35 Europe/Berlin] Received JSON input: {"room_id":"3","student_id":"23-2449","purpose":"presentation","start_time":"02:04","end_time":"04:04"}
+[11-May-2025 02:04:35 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 3
+    [student_id] => 23-2449
+    [purpose] => presentation
+    [start_time] => 02:04
+    [end_time] => 04:04
+)
+
+[11-May-2025 02:04:35 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 02:04:35 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 02:04:35 Asia/Manila] Start time from request: 02:04
+[11-May-2025 02:04:35 Asia/Manila] End time from request: 04:04
+[11-May-2025 02:04:35 Asia/Manila] Combined start time: 2025-05-11 02:04
+[11-May-2025 02:04:35 Asia/Manila] Combined end time: 2025-05-11 04:04
+[11-May-2025 02:04:35 Asia/Manila] Executing check query with params - Room ID: 3, Start: 2025-05-11 02:04, End: 2025-05-11 04:04
+[11-May-2025 02:04:35 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:04
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:04
+[11-May-2025 02:04:35 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 02:04:35 Asia/Manila] Generated reservation ID: 27
+[11-May-2025 02:04:35 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 27
+    [room_id] => 3
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 02:04
+    [end_time] => 2025-05-11 04:04
+    [purpose] => presentation
+)
+
+[11-May-2025 02:04:35 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :reservation_id: 27
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:04
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:04
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :purpose: presentation
+[11-May-2025 02:04:35 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 02:04:35 Asia/Manila] Binding parameter :reservation_id: 27
+[11-May-2025 02:04:35 Asia/Manila] Room reservation successful: Room 3 reserved from 2025-05-11 02:04:00 to 2025-05-11 04:04:00
+[10-May-2025 20:08:55 Europe/Berlin] Received JSON input: {"room_id":"3","student_id":"23-2449","purpose":"team_meeting","start_time":"02:08","end_time":"04:08"}
+[11-May-2025 02:08:55 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 3
+    [student_id] => 23-2449
+    [purpose] => team_meeting
+    [start_time] => 02:08
+    [end_time] => 04:08
+)
+
+[11-May-2025 02:08:55 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 02:08:55 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 02:08:55 Asia/Manila] Start time from request: 02:08
+[11-May-2025 02:08:55 Asia/Manila] End time from request: 04:08
+[11-May-2025 02:08:55 Asia/Manila] Combined start time: 2025-05-11 02:08
+[11-May-2025 02:08:55 Asia/Manila] Combined end time: 2025-05-11 04:08
+[11-May-2025 02:08:55 Asia/Manila] Executing check query with params - Room ID: 3, Start: 2025-05-11 02:08, End: 2025-05-11 04:08
+[11-May-2025 02:08:55 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:08
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:08
+[11-May-2025 02:08:55 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 02:08:55 Asia/Manila] Generated reservation ID: 28
+[11-May-2025 02:08:55 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 28
+    [room_id] => 3
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 02:08
+    [end_time] => 2025-05-11 04:08
+    [purpose] => team_meeting
+)
+
+[11-May-2025 02:08:55 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :reservation_id: 28
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :room_id: 3
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:08
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:08
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :purpose: team_meeting
+[11-May-2025 02:08:55 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 02:08:55 Asia/Manila] Binding parameter :reservation_id: 28
+[11-May-2025 02:08:55 Asia/Manila] Room reservation successful: Room 3 reserved from 2025-05-11 02:08:00 to 2025-05-11 04:08:00
+[10-May-2025 20:13:46 Europe/Berlin] Received JSON input: {"room_id":"4","student_id":"23-2449","purpose":"presentation","start_time":"02:13","end_time":"04:13"}
+[11-May-2025 02:13:46 Asia/Manila] Processing room reservation request: Array
+(
+    [room_id] => 4
+    [student_id] => 23-2449
+    [purpose] => presentation
+    [start_time] => 02:13
+    [end_time] => 04:13
+)
+
+[11-May-2025 02:13:46 Asia/Manila] Executing SQL: SELECT 
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD') as current_date,
+        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
+        SYSTIMESTAMP as current_timestamp
+    FROM DUAL
+[11-May-2025 02:13:46 Asia/Manila] Current date from Oracle: 2025-05-11
+[11-May-2025 02:13:46 Asia/Manila] Start time from request: 02:13
+[11-May-2025 02:13:46 Asia/Manila] End time from request: 04:13
+[11-May-2025 02:13:46 Asia/Manila] Combined start time: 2025-05-11 02:13
+[11-May-2025 02:13:46 Asia/Manila] Combined end time: 2025-05-11 04:13
+[11-May-2025 02:13:46 Asia/Manila] Executing check query with params - Room ID: 4, Start: 2025-05-11 02:13, End: 2025-05-11 04:13
+[11-May-2025 02:13:46 Asia/Manila] Executing SQL: WITH current_time AS (
+        SELECT SYSTIMESTAMP AS now FROM DUAL
+    )
+    SELECT COUNT(*) as count 
+    FROM room_reservation 
+    CROSS JOIN current_time
+    WHERE room_id = :room_id 
+    AND status = 'Approved'
+    AND (
+        (CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) <= end_time
+         AND CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP) >= start_time)
+    )
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :room_id: 4
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:13
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:13
+[11-May-2025 02:13:46 Asia/Manila] Executing SQL: SELECT room_reservation_seq.NEXTVAL as next_id FROM DUAL
+[11-May-2025 02:13:46 Asia/Manila] Generated reservation ID: 29
+[11-May-2025 02:13:46 Asia/Manila] Executing insert query with params: Array
+(
+    [reservation_id] => 29
+    [room_id] => 4
+    [student_id] => 23-2449
+    [start_time] => 2025-05-11 02:13
+    [end_time] => 2025-05-11 04:13
+    [purpose] => presentation
+)
+
+[11-May-2025 02:13:46 Asia/Manila] Executing SQL: INSERT INTO room_reservation (
+        reservation_id,
+        room_id, 
+        student_id, 
+        start_time, 
+        end_time, 
+        purpose,
+        status
+    ) VALUES (
+        :reservation_id,
+        :room_id,
+        :student_id,
+        CAST(TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        CAST(TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI') AS TIMESTAMP),
+        :purpose,
+        'Pending'
+    )
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :reservation_id: 29
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :room_id: 4
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :student_id: 23-2449
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :start_time: 2025-05-11 02:13
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :end_time: 2025-05-11 04:13
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :purpose: presentation
+[11-May-2025 02:13:46 Asia/Manila] Executing SQL: SELECT 
+                      TO_CHAR(start_time, 'YYYY-MM-DD HH24:MI:SS') as stored_start_time,
+                      TO_CHAR(end_time, 'YYYY-MM-DD HH24:MI:SS') as stored_end_time
+                   FROM room_reservation 
+                   WHERE reservation_id = :reservation_id
+[11-May-2025 02:13:46 Asia/Manila] Binding parameter :reservation_id: 29
+[11-May-2025 02:13:46 Asia/Manila] Room reservation successful: Room 4 reserved from 2025-05-11 02:13:00 to 2025-05-11 04:13:00

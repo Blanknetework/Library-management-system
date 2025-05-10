@@ -16,191 +16,130 @@ ob_clean();
 header('Content-Type: application/json');
 
 try {
-   
-    date_default_timezone_set('Asia/Manila');
-    
-    
-    $time_sql = "SELECT 
-        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF TZR') as oracle_time,
-        TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS') as current_time_str,
-        SYSTIMESTAMP as current_timestamp
-    FROM DUAL";
-    
-    $time_stmt = executeOracleQuery($time_sql);
-    if (!$time_stmt) {
-        throw new Exception('Failed to execute time query: ' . print_r(oci_error(), true));
-    }
-    
-    $oracle_time = null;
-    $current_time_str = null;
-    if ($time_row = oci_fetch_assoc($time_stmt)) {
-        $oracle_time = $time_row['ORACLE_TIME'];
-        $current_time_str = $time_row['CURRENT_TIME_STR'];
-        error_log("Oracle server time: " . $oracle_time);
-        error_log("Current time string: " . $current_time_str);
-    } else {
-        throw new Exception('Failed to fetch time data: ' . print_r(oci_error($time_stmt), true));
-    }
-    
-    // Query to get all room reservations that are currently active or upcoming
-    $sql = "WITH current_time AS (
-        SELECT 
-            SYSTIMESTAMP AS now,
-            TRUNC(SYSTIMESTAMP) as today_start,
-            TRUNC(SYSTIMESTAMP) + INTERVAL '1' DAY - INTERVAL '1' SECOND as today_end
-        FROM DUAL
-    )
-    SELECT DISTINCT 
-           room_reservation.room_id, 
-           room_reservation.reservation_id,
-           room_reservation.student_id,
-           room_reservation.start_time as original_start_time,
-           TO_CHAR(CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD HH24:MI:SS') as start_time,
-           TO_CHAR(CAST(room_reservation.end_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila', 'YYYY-MM-DD HH24:MI:SS') as end_time,
-           TO_CHAR(current_time.now, 'YYYY-MM-DD HH24:MI:SS') as current_time,
-           CASE 
-               WHEN CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila' <= current_time.now 
-                    AND CAST(room_reservation.end_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila' > current_time.now 
-               THEN 'ACTIVE'
-               WHEN CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila' > current_time.now 
-                    AND TRUNC(CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila') = TRUNC(current_time.now)
-               THEN 'UPCOMING_TODAY'
-               WHEN TRUNC(CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila') > TRUNC(current_time.now)
-               THEN 'FUTURE'
-               ELSE 'PAST'
-           END as reservation_status
-    FROM room_reservation
-    CROSS JOIN current_time
-    WHERE (
-        -- Active reservations (happening right now)
-        (CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila' <= current_time.now 
-         AND CAST(room_reservation.end_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila' > current_time.now)
-        OR
-        -- Today's upcoming reservations
-        (CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila' > current_time.now 
-         AND TRUNC(CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila') = TRUNC(current_time.now))
-        OR
-        -- Today's past reservations
-        (TRUNC(CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila') = TRUNC(current_time.now) 
-         AND CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila' < current_time.now)
-        OR
-        -- Future reservations (within the next 7 days)
-        (TRUNC(CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila') > TRUNC(current_time.now)
-         AND TRUNC(CAST(room_reservation.start_time AS TIMESTAMP) AT TIME ZONE 'Asia/Manila') <= TRUNC(current_time.now) + 7)
-    )
-    ORDER BY original_start_time";
-    
-    error_log("Executing room status query: " . $sql);
-    
-    $stmt = executeOracleQuery($sql);
-    if (!$stmt) {
-        throw new Exception('Failed to execute room status query: ' . print_r(oci_error(), true));
-    }
-    
-    $occupied_rooms = [];
-    $active_reservations = [];
-    $upcoming_reservations = [];
-    $all_reservations = [];
-    
-    while ($row = oci_fetch_assoc($stmt)) {
-        if (!$row) {
-            error_log('Warning: Failed to fetch row: ' . print_r(oci_error($stmt), true));
-            continue;
+    $conn = getOracleConnection();
+    if ($conn) {
+        $response = ['success' => true, 'active_reservations' => [], 'upcoming_reservations' => [], 'all_reservations' => [], 'pending_reservations' => [], 'todays_reservations' => []];
+        
+        // Get active reservations (approved and current time is between start and end time)
+        $active_sql = "SELECT r.*, s.full_name 
+                      FROM sys.room_reservation r
+                      JOIN sys.students s ON r.student_id = s.student_id
+                      WHERE r.status = 'Approved'
+                      AND SYSTIMESTAMP BETWEEN r.start_time AND r.end_time";
+        $active_stmt = oci_parse($conn, $active_sql);
+        oci_execute($active_stmt);
+        while ($row = oci_fetch_assoc($active_stmt)) {
+            $response['active_reservations'][] = $row;
         }
         
-        $room_id = intval($row['ROOM_ID']);
-        $reservation_data = [
-            'room_id' => $room_id,
-            'reservation_id' => $row['RESERVATION_ID'],
-            'student_id' => $row['STUDENT_ID'],
-            'start_time' => $row['START_TIME'],
-            'end_time' => $row['END_TIME'],
-            'current_time' => $row['CURRENT_TIME'],
-            'status' => $row['RESERVATION_STATUS']
-        ];
-        
-        $all_reservations[] = $reservation_data;
-        
-        if ($row['RESERVATION_STATUS'] === 'ACTIVE') {
-            $occupied_rooms[] = $room_id;
-            $active_reservations[] = $reservation_data;
-            error_log("Room {$room_id} is ACTIVE: Start={$row['START_TIME']}, End={$row['END_TIME']}, Current={$row['CURRENT_TIME']}");
-        } elseif ($row['RESERVATION_STATUS'] === 'UPCOMING_TODAY') {
-            $upcoming_reservations[] = $reservation_data;
-            error_log("Room {$room_id} is UPCOMING: Start={$row['START_TIME']}, End={$row['END_TIME']}, Current={$row['CURRENT_TIME']}");
+        // Get upcoming reservations for today
+        $upcoming_sql = "SELECT r.*, s.full_name 
+                        FROM sys.room_reservation r
+                        JOIN sys.students s ON r.student_id = s.student_id
+                        WHERE r.status = 'Approved'
+                        AND TRUNC(r.start_time) = TRUNC(SYSTIMESTAMP)
+                        AND r.start_time > SYSTIMESTAMP";
+        $upcoming_stmt = oci_parse($conn, $upcoming_sql);
+        oci_execute($upcoming_stmt);
+        while ($row = oci_fetch_assoc($upcoming_stmt)) {
+            $response['upcoming_reservations'][] = $row;
         }
-    }
-    
-    // Create status array for all rooms (1-5)
-    $room_status = [];
-    for ($i = 1; $i <= 5; $i++) {
-        $room_reservations = array_filter($all_reservations, function($res) use ($i) {
-            return $res['room_id'] === $i;
-        });
         
-        $status = 'AVAILABLE'; 
-        $end_time = null;
+        // Get all reservations for status display
+        $all_sql = "SELECT r.*, s.full_name 
+                   FROM sys.room_reservation r
+                   JOIN sys.students s ON r.student_id = s.student_id
+                   WHERE r.status IN ('Approved', 'Pending')
+                   AND r.start_time >= SYSTIMESTAMP";
+        $all_stmt = oci_parse($conn, $all_sql);
+        oci_execute($all_stmt);
+        while ($row = oci_fetch_assoc($all_stmt)) {
+            $response['all_reservations'][] = $row;
+        }
         
-        foreach ($room_reservations as $res) {
-            if ($res['status'] === 'ACTIVE') {
-                $status = 'ACTIVE';
-                $end_time = $res['end_time'];
-                break;
-            } elseif ($res['status'] === 'UPCOMING_TODAY' && $status !== 'ACTIVE') {
-                $status = 'UPCOMING_TODAY';
-                $end_time = $res['end_time'];
-            } elseif ($res['status'] === 'FUTURE' && $status !== 'ACTIVE' && $status !== 'UPCOMING_TODAY') {
-                $status = 'FUTURE';
-                $end_time = $res['end_time'];
+        // Get pending reservations (not yet approved, but for today or future)
+        $pending_sql = "SELECT r.*, s.full_name 
+                        FROM sys.room_reservation r
+                        JOIN sys.students s ON r.student_id = s.student_id
+                        WHERE r.status = 'Pending'
+                        AND r.start_time >= SYSTIMESTAMP";
+        $pending_stmt = oci_parse($conn, $pending_sql);
+        oci_execute($pending_stmt);
+        while ($row = oci_fetch_assoc($pending_stmt)) {
+            $response['pending_reservations'][] = $row;
+        }
+        
+        // Get all today's reservations (pending and approved)
+        $todays_sql = "SELECT r.room_id, r.status, TO_CHAR(r.start_time, 'HH24:MI') as start_time, TO_CHAR(r.end_time, 'HH24:MI') as end_time
+                       FROM sys.room_reservation r
+                       WHERE (r.status = 'Approved' OR r.status = 'Pending')
+                       AND TRUNC(r.start_time) = TRUNC(SYSDATE)";
+        $todays_stmt = oci_parse($conn, $todays_sql);
+        oci_execute($todays_stmt);
+        $todays_reservations = [];
+        while ($row = oci_fetch_assoc($todays_stmt)) {
+            $todays_reservations[] = $row;
+        }
+        $response['todays_reservations'] = $todays_reservations;
+        
+        // Build a status map for each room (1-5)
+        $room_status_map = [];
+        for ($i = 1; $i <= 5; $i++) {
+            $room_status_map[$i] = 'AVAILABLE';
+        }
+
+        // Mark ACTIVE
+        foreach ($response['active_reservations'] as $res) {
+            $room_id = intval($res['ROOM_ID']);
+            $room_status_map[$room_id] = 'ACTIVE';
+        }
+
+        // Mark UPCOMING_TODAY (if not already ACTIVE)
+        foreach ($response['upcoming_reservations'] as $res) {
+            $room_id = intval($res['ROOM_ID']);
+            if ($room_status_map[$room_id] !== 'ACTIVE') {
+                $room_status_map[$room_id] = 'UPCOMING_TODAY';
             }
         }
-        
-        $room_status[$i] = [
-            'status' => $status,
-            'end_time' => $end_time
-        ];
-        
-        error_log("Setting Room {$i} status to: " . $status . ($end_time ? " (Ends at: $end_time)" : ""));
-        
-        if (!empty($room_reservations)) {
-            error_log("All reservations for Room {$i}: " . json_encode($room_reservations));
+
+        // Mark FUTURE (if not already ACTIVE or UPCOMING_TODAY)
+        foreach ($response['all_reservations'] as $res) {
+            $room_id = intval($res['ROOM_ID']);
+            $start_time = strtotime($res['START_TIME']);
+            if (
+                $room_status_map[$room_id] === 'AVAILABLE' &&
+                $start_time > strtotime('tomorrow')
+            ) {
+                $room_status_map[$room_id] = 'FUTURE';
+            }
         }
-    }
-    
-    // Prepare response
-    $response = [
-        'success' => true,
-        'room_status' => $room_status,
-        'oracle_time' => $oracle_time,
-        'current_time' => $current_time_str,
-        'active_reservations' => $active_reservations,
-        'upcoming_reservations' => $upcoming_reservations,
-        'all_reservations' => $all_reservations,
-        'occupied_rooms' => $occupied_rooms,
-        'timestamp' => time()
-    ];
-    
-    
-    ob_clean();
+
+        // Mark PENDING (if not already ACTIVE or UPCOMING_TODAY)
+        if (isset($response['pending_reservations'])) {
+            foreach ($response['pending_reservations'] as $res) {
+                $room_id = intval($res['ROOM_ID']);
+                // Mark as PENDING if not already ACTIVE or UPCOMING_TODAY
+                if ($room_status_map[$room_id] !== 'ACTIVE' && $room_status_map[$room_id] !== 'UPCOMING_TODAY') {
+                    $room_status_map[$room_id] = 'PENDING';
+                }
+            }
+        }
+
+        $response['room_status_map'] = $room_status_map;
     
     echo json_encode($response);
-    error_log("Returning room status response: " . json_encode($response));
-    
+    } else {
+        throw new Exception("Database connection failed");
+    }
 } catch (Exception $e) {
-    error_log("Error in get_room_status.php: " . $e->getMessage());
-    error_log("Stack trace: " . $e->getTraceAsString());
-    
-   
-    ob_clean();
-    
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 } finally {
     // Free statements
-    if (isset($time_stmt)) oci_free_statement($time_stmt);
-    if (isset($stmt)) oci_free_statement($stmt);
+    if (isset($active_stmt)) oci_free_statement($active_stmt);
+    if (isset($upcoming_stmt)) oci_free_statement($upcoming_stmt);
+    if (isset($all_stmt)) oci_free_statement($all_stmt);
+    if (isset($pending_stmt)) oci_free_statement($pending_stmt);
+    if (isset($todays_stmt)) oci_free_statement($todays_stmt);
     
     
     ob_end_flush();

@@ -160,9 +160,9 @@ if (isset($_SESSION['login_errors'])) {
                                     <option value="">PC Number</option>
                                     <template x-for="i in 19" :key="i">
                                         <option :value="i" 
-                                                :disabled="pcStatus[i]" 
-                                                :class="pcStatus[i] ? 'text-red-500' : 'text-green-500'"
-                                                x-text="'PC ' + i + ' - ' + (pcStatus[i] ? 'Occupied' : 'Available')">
+                                                :disabled="pcStatus[i] && (pcStatus[i] === 'ACTIVE' || pcStatus[i] === 'UPCOMING_TODAY' || pcStatus[i] === 'PENDING' || pcStatus[i] === 'PENDING_UPCOMING')" 
+                                                :class="pcStatus[i] === 'ACTIVE' ? 'text-red-500' : pcStatus[i] === 'PENDING' ? 'text-yellow-500' : 'text-green-500'"
+                                                x-text="'PC ' + i + ' - ' + (pcStatus[i] === 'ACTIVE' ? 'Occupied' : pcStatus[i] === 'PENDING' ? 'Pending' : 'Available')">
                                         </option>
                                     </template>
                                 </select>
@@ -216,14 +216,14 @@ if (isset($_SESSION['login_errors'])) {
                                     <option value="">Room Number</option>
                                     <template x-for="i in 5" :key="i">
                                         <option :value="i" 
-                                                :disabled="roomStatus[i] === 'ACTIVE' || roomStatus[i] === 'UPCOMING_TODAY'" 
+                                            :disabled="roomStatus[i] === 'ACTIVE' || roomStatus[i] === 'OCCUPIED' || roomStatus[i] === 'PENDING' || roomStatus[i] === 'UPCOMING_TODAY'"
                                                 :class="{
-                                                    'text-red-500': roomStatus[i] === 'ACTIVE',
-                                                    'text-yellow-500': roomStatus[i] === 'UPCOMING_TODAY',
-                                                    'text-blue-500': roomStatus[i] === 'FUTURE',
-                                                    'text-green-500': roomStatus[i] === 'AVAILABLE'
+                                                'text-red-500': roomStatus[i] === 'ACTIVE' || roomStatus[i] === 'OCCUPIED',
+                                                'text-yellow-500': roomStatus[i] === 'PENDING',
+                                                'text-blue-500': roomStatus[i] === 'UPCOMING_TODAY',
+                                                'text-green-500': !roomStatus[i] || roomStatus[i] === 'AVAILABLE'
                                                 }"
-                                                x-text="'Room ' + i + ' - ' + getRoomStatusText(roomStatus[i])">
+                                            x-text="'Room ' + i + ' - ' + getRoomStatusText(roomStatus[i])">
                                         </option>
                                     </template>
                                 </select>
@@ -464,9 +464,8 @@ if (isset($_SESSION['login_errors'])) {
                                                 <span x-effect="pcStatus[i]"
                                                       :class="{
                                                           'text-red-500': pcStatus[i] === 'ACTIVE',
-                                                          'text-yellow-500': pcStatus[i] === 'UPCOMING_TODAY',
-                                                          'text-blue-500': pcStatus[i] === 'FUTURE',
-                                                          'text-gray-500': pcStatus[i] === 'PAST',
+                                                          'text-yellow-500': pcStatus[i] === 'PENDING',
+                                                          'text-blue-500': pcStatus[i] === 'UPCOMING_TODAY' || pcStatus[i] === 'PENDING_UPCOMING',
                                                           'text-green-500': !pcStatus[i]
                                                       }"
                                                       x-text="getPCStatusText(pcStatus[i])">
@@ -498,15 +497,15 @@ if (isset($_SESSION['login_errors'])) {
                                             <tr class="border-b">
                                                 <td class="py-1.5 px-3 text-center" x-text="'Room ' + i"></td>
                                                 <td class="py-1.5 px-3 text-center">
-                                                    <span
-                                                          :class="{
-                                                              'text-red-500': roomStatus[i] === 'ACTIVE',
-                                                              'text-yellow-500': roomStatus[i] === 'UPCOMING_TODAY',
-                                                              'text-blue-500': roomStatus[i] === 'FUTURE',
-                                                              'text-green-500': roomStatus[i] === 'AVAILABLE'
-                                                          }"
-                                                          x-text="getRoomStatusText(roomStatus[i])">
-                                                    </span>
+                                                <span
+                                                    :class="{
+                                                        'text-red-500': roomStatus[i] === 'ACTIVE',
+                                                        'text-yellow-500': roomStatus[i] === 'PENDING',
+                                                        'text-blue-500': roomStatus[i] === 'UPCOMING_TODAY',
+                                                        'text-green-500': !roomStatus[i] || roomStatus[i] === 'AVAILABLE'
+                                                    }"
+                                                    x-text="getRoomStatusText(roomStatus[i])">
+                                                </span>
                                                 </td>
                                                 <td class="py-1.5 px-3 text-center" x-text="'10-15 persons'"></td>
                                             </tr>
@@ -518,6 +517,48 @@ if (isset($_SESSION['login_errors'])) {
                     </template>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Add this section after the PC reservation form -->
+    <div class="mt-8 bg-white rounded-lg border border-gray-200 overflow-hidden">
+        <div class="p-4 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-blue-900">My PC Reservation Requests</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-blue-900 text-white">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">PC Number</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Time</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Purpose</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                    <template x-for="request in pcRequests" :key="request.reservation_id">
+                        <tr class="hover:bg-gray-50 transition duration-150">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-800" x-text="'PC ' + request.pc_id"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-600" x-text="request.start_time + ' - ' + request.end_time"></td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-600" x-text="request.purpose"></td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span :class="{
+                                    'bg-yellow-100 text-yellow-800': request.status === 'Pending',
+                                    'bg-green-100 text-green-800': request.status === 'Approved',
+                                    'bg-red-100 text-red-800': request.status === 'Rejected'
+                                }" class="px-3 py-1 rounded-full text-xs font-medium" x-text="request.status">
+                                </span>
+                            </td>
+                        </tr>
+                    </template>
+                    <!-- Empty state -->
+                    <tr x-show="pcRequests.length === 0">
+                        <td colspan="4" class="px-6 py-8 text-center">
+                            <p class="text-gray-500 text-sm">You don't have any PC reservation requests yet.</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -550,6 +591,10 @@ if (isset($_SESSION['login_errors'])) {
             books: [],
             filteredBooks: [],
             borrowingRequests: [],
+            pcRequests: [],
+            todaysReservations: [],
+            // Track pending room reservations made by this user that may not be on server yet
+            pendingRoomRequests: [],
 
            
             get pcStatus() {
@@ -582,6 +627,7 @@ if (isset($_SESSION['login_errors'])) {
                     initialRoomStatus[i] = null;
                 }
                 this.roomStatus = initialRoomStatus;
+                this.roomStatusData = initialRoomStatus;
                 
                
                 this.loadPCStatus();
@@ -650,49 +696,55 @@ if (isset($_SESSION['login_errors'])) {
 
             async loadPCStatus() {
                 try {
-                   
                     const response = await fetch('get_pc_status.php?t=' + new Date().getTime());
                     const data = await response.json();
                     
                     if (data.success) {
-                        console.log('Received PC status:', data);
-                        
-                       
                         const newStatus = {};
-                        let hasChanges = false;
-                        
-                       
+                        // Set all to null (available) by default
                         for (let i = 1; i <= 19; i++) {
                             newStatus[i] = null;
                         }
                         
-                       
+                        // Priority: ACTIVE > PENDING > UPCOMING_TODAY > PENDING_UPCOMING
                         data.active_reservations.forEach(res => {
                             const pcId = parseInt(res.pc_id);
                             if (pcId >= 1 && pcId <= 19) {
-                                newStatus[pcId] = res.status;
-                                
-                                if (newStatus[pcId] !== this.pcStatusData[pcId]) {
-                                    hasChanges = true;
+                                if (res.status === 'ACTIVE') {
+                                    newStatus[pcId] = 'ACTIVE';
+                                } else if (res.status === 'PENDING') {
+                                    // Only set to PENDING if not already ACTIVE
+                                    if (!newStatus[pcId]) newStatus[pcId] = 'PENDING';
+                                } else if (res.status === 'UPCOMING_TODAY') {
+                                    if (!newStatus[pcId]) newStatus[pcId] = 'UPCOMING_TODAY';
+                                } else if (res.status === 'PENDING_UPCOMING') {
+                                    if (!newStatus[pcId]) newStatus[pcId] = 'PENDING_UPCOMING';
                                 }
                             }
                         });
                         
-                        if (hasChanges) {
                             this.pcStatus = newStatus;
                         }
-                        
-                        
-                        if (this.selectedPC && (newStatus[this.selectedPC] === 'ACTIVE' || newStatus[this.selectedPC] === 'UPCOMING_TODAY')) {
-                            this.selectedPC = '';
-                            this.purpose = '';
-                            this.startTime = '';
-                            this.endTime = '';
-                            alert('Selected PC is no longer available. Please choose another PC.');
-                        }
-                    }
                 } catch (error) {
                     console.error('Error loading PC status:', error);
+                }
+            },
+
+            async loadPCRequests() {
+                try {
+                    const response = await fetch('get_pc_requests.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ student_id: this.studentDetails.student_id })
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        this.pcRequests = data.requests;
+                    }
+                } catch (error) {
+                    console.error('Error loading PC requests:', error);
                 }
             },
 
@@ -761,12 +813,7 @@ if (isset($_SESSION['login_errors'])) {
                     const data = await response.json();
                     
                     if (data.success) {
-                      
-                        this.markPCAsOccupied(this.selectedPC);
-                        
-                      
-                        alert(`PC ${this.selectedPC} has been successfully reserved\nStart: ${data.data.stored_start_time}\nEnd: ${data.data.stored_end_time}`);
-                        
+                        alert('PC reservation request submitted successfully! Please wait for admin approval.');
                     
                         this.selectedPC = '';
                         this.purpose = '';
@@ -774,11 +821,9 @@ if (isset($_SESSION['login_errors'])) {
                         this.endTime = '';
                         this.minEndTime = '';
                         this.maxEndTime = '';
-                        
                        
                         await this.loadPCStatus();
-                        
-                        
+                        await this.loadPCRequests();
                     } else {
                         throw new Error(data.message || 'Failed to make reservation');
                     }
@@ -794,63 +839,74 @@ if (isset($_SESSION['login_errors'])) {
                     const response = await fetch('get_room_status.php?t=' + new Date().getTime());
                     const data = await response.json();
                     
-                    if (data.success) {
-                        console.log('Received room status data:', data);
+                    if (data.success && data.room_status_map) {
+                        // Save a copy of the current status to preserve pending states
+                        const currentStatus = { ...this.roomStatus };
                         
-                        const newStatus = {};
-                        let hasChanges = false;
+                        // Update with server data
+                        const newStatus = { ...data.room_status_map };
                         
-                       
+                        // Preserve any local PENDING states that might not be reflected on the server yet
                         for (let i = 1; i <= 5; i++) {
-                            newStatus[i] = 'AVAILABLE';
+                            if (currentStatus[i] === 'PENDING' && newStatus[i] === 'AVAILABLE') {
+                                newStatus[i] = 'PENDING';
+                            }
                         }
                         
-                        
-                        data.active_reservations.forEach(res => {
-                            const roomId = parseInt(res.room_id);
-                            if (roomId >= 1 && roomId <= 5) {
-                                newStatus[roomId] = 'ACTIVE';
-                            }
-                        });
-
-                        data.upcoming_reservations.forEach(res => {
-                            const roomId = parseInt(res.room_id);
-                            if (roomId >= 1 && roomId <= 5 && newStatus[roomId] !== 'ACTIVE') {
-                                newStatus[roomId] = 'UPCOMING_TODAY';
-                            }
-                        });
-
-                       
-                        data.all_reservations.forEach(res => {
-                            const roomId = parseInt(res.room_id);
-                            if (roomId >= 1 && roomId <= 5) {
-                                if (res.status === 'FUTURE' && newStatus[roomId] !== 'ACTIVE' && newStatus[roomId] !== 'UPCOMING_TODAY') {
-                                    newStatus[roomId] = 'FUTURE';
+                        // Apply any pending room requests from this session
+                        if (Array.isArray(this.pendingRoomRequests) && this.pendingRoomRequests.length > 0) {
+                            // Keep pending requests for up to 1 hour (3600000 ms)
+                            const now = new Date().getTime();
+                            // Filter out expired requests (older than 1 hour)
+                            this.pendingRoomRequests = this.pendingRoomRequests.filter(req => {
+                                return (now - req.timestamp) < 3600000;
+                            });
+                            
+                            // Apply remaining pending requests
+                            this.pendingRoomRequests.forEach(req => {
+                                const roomId = parseInt(req.room_id);
+                                if (roomId >= 1 && roomId <= 5) {
+                                    // Only override if not already ACTIVE or UPCOMING_TODAY
+                                    if (newStatus[roomId] !== 'ACTIVE' && newStatus[roomId] !== 'UPCOMING_TODAY') {
+                                        newStatus[roomId] = 'PENDING';
+                                    }
                                 }
-                            }
-                        });
-                        
-                       
-                        for (let i = 1; i <= 5; i++) {
-                            if (newStatus[i] !== this.roomStatusData[i]) {
-                                hasChanges = true;
-                                break;
-                            }
+                            });
                         }
                         
-                        if (hasChanges) {
-                            this.roomStatus = newStatus;
-                            console.log('Updated room status:', this.roomStatus);
-                        }
+                        this.roomStatus = newStatus;
+                        this.roomStatusData = { ...newStatus };
+                        this.todaysReservations = data.todays_reservations || [];
                         
-                       
-                        if (this.selectedRoom && (newStatus[this.selectedRoom] === 'ACTIVE' || newStatus[this.selectedRoom] === 'UPCOMING_TODAY')) {
+                        // Add our pending requests to today's reservations if they're not already there
+                        if (Array.isArray(this.pendingRoomRequests) && this.pendingRoomRequests.length > 0) {
+                            this.pendingRoomRequests.forEach(req => {
+                                const roomId = parseInt(req.room_id);
+                                // Check if this request is already in todaysReservations
+                                const exists = this.todaysReservations.some(res => {
+                                    return parseInt(res.room_id) === roomId && 
+                                           res.start_time === req.start_time && 
+                                           res.end_time === req.end_time;
+                                });
+                                
+                                if (!exists) {
+                                    this.todaysReservations.push({
+                                        room_id: roomId.toString(),
+                                        status: 'Pending',
+                                        start_time: req.start_time,
+                                        end_time: req.end_time
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    // Optionally, handle clearing the form if the selected room is no longer available
+                    if (this.selectedRoom && (this.roomStatus[this.selectedRoom] === 'ACTIVE' || this.roomStatus[this.selectedRoom] === 'UPCOMING_TODAY')) {
                             this.selectedRoom = '';
                             this.roomPurpose = '';
                             this.roomStartTime = '';
                             this.roomEndTime = '';
                             alert('Selected room is no longer available. Please choose another room.');
-                        }
                     }
                 } catch (error) {
                     console.error('Error loading room status:', error);
@@ -909,12 +965,29 @@ if (isset($_SESSION['login_errors'])) {
                         throw new Error('Student details not found. Please try logging in again.');
                     }
 
-                    // Check room availability before submitting
-                    await this.loadRoomStatus();
-                    if (this.roomStatus[this.selectedRoom] === 'ACTIVE' || 
-                        this.roomStatus[this.selectedRoom] === 'UPCOMING_TODAY') {
-                        alert('This room is no longer available. Please choose another room.');
-                        this.selectedRoom = '';
+                    // First check if the room is already marked as occupied or pending in our status
+                    if (this.roomStatus[this.selectedRoom] === 'ACTIVE' || this.roomStatus[this.selectedRoom] === 'OCCUPIED') {
+                        alert('This room is currently occupied. Please choose another room.');
+                        return;
+                    }
+                    
+                    if (this.roomStatus[this.selectedRoom] === 'PENDING') {
+                        alert('This room already has a pending reservation. Please choose another room.');
+                        return;
+                    }
+                    
+                    if (this.roomStatus[this.selectedRoom] === 'UPCOMING_TODAY') {
+                        alert('This room is already reserved for today. Please choose another room.');
+                        return;
+                    }
+
+                    // Then check for time conflicts as a secondary validation
+                    if (this.hasApprovedConflict(this.selectedRoom, this.roomStartTime, this.roomEndTime)) {
+                        alert('This room is already reserved for this time period (approved reservation)');
+                        return;
+                    }
+                    if (this.hasPendingConflict(this.selectedRoom, this.roomStartTime, this.roomEndTime)) {
+                        alert('This room already has a pending reservation for this time period');
                         return;
                     }
 
@@ -946,6 +1019,29 @@ if (isset($_SESSION['login_errors'])) {
                     console.log('Server response:', data);
                     
                     if (data.success) {
+                        // Update the room status immediately to show PENDING
+                        const newStatus = { ...this.roomStatusData };
+                        newStatus[this.selectedRoom] = 'PENDING';
+                        this.roomStatus = newStatus;
+                        
+                        // Add to today's reservations
+                        if (Array.isArray(this.todaysReservations)) {
+                            this.todaysReservations.push({
+                                room_id: this.selectedRoom,
+                                status: 'Pending',
+                                start_time: this.roomStartTime,
+                                end_time: this.roomEndTime
+                            });
+                        }
+                        
+                        // Add to pending room requests to persist across refreshes
+                        this.pendingRoomRequests.push({
+                            room_id: this.selectedRoom,
+                            start_time: this.roomStartTime,
+                            end_time: this.roomEndTime,
+                            timestamp: new Date().getTime()
+                        });
+                        
                         // Clear form fields first
                         this.selectedRoom = '';
                         this.roomPurpose = '';
@@ -954,7 +1050,7 @@ if (isset($_SESSION['login_errors'])) {
                         this.minRoomEndTime = '';
                         this.maxRoomEndTime = '';
                         
-                        
+                        // Now we can safely refresh from server because we track pending requests
                         await this.loadRoomStatus();
                         
                         alert(`Room ${requestData.room_id} has been successfully reserved\nStart: ${data.data.stored_start_time}\nEnd: ${data.data.stored_end_time}`);
@@ -1010,6 +1106,8 @@ if (isset($_SESSION['login_errors'])) {
                         return 'Reserved Today';
                     case 'FUTURE':
                         return 'Reserved';
+                    case 'PENDING':
+                        return 'Pending Approval';
                     case 'PAST':
                     case 'AVAILABLE':
                     case null:
@@ -1026,6 +1124,10 @@ if (isset($_SESSION['login_errors'])) {
                         return 'Reserved Today';
                     case 'FUTURE':
                         return 'Future Reservation';
+                    case 'PENDING':
+                        return 'Pending Approval';
+                    case 'PENDING_UPCOMING':
+                        return 'Pending (Upcoming)';
                     case 'PAST':
                         return 'Available';
                     default:
@@ -1096,6 +1198,53 @@ if (isset($_SESSION['login_errors'])) {
                     console.error('Error requesting book:', error);
                     alert('An error occurred while submitting the request');
                 }
+            },
+
+            hasApprovedConflict(roomId, startTime, endTime) {
+                if (!this.todaysReservations) return false;
+                const toMinutes = t => {
+                    const [h, m] = t.split(':').map(Number);
+                    return h * 60 + m;
+                };
+                const selStart = toMinutes(startTime);
+                const selEnd = toMinutes(endTime);
+
+                return this.todaysReservations.some(res => {
+                    if (parseInt(res.room_id) !== parseInt(roomId)) return false;
+                    if (res.status !== 'Approved') return false;
+                    const resStart = toMinutes(res.start_time);
+                    const resEnd = toMinutes(res.end_time);
+                    return !(selEnd <= resStart || selStart >= resEnd);
+                });
+            },
+
+            hasPendingConflict(roomId, startTime, endTime) {
+                if (!this.todaysReservations) return false;
+                const toMinutes = t => {
+                    const [h, m] = t.split(':').map(Number);
+                    return h * 60 + m;
+                };
+                const selStart = toMinutes(startTime);
+                const selEnd = toMinutes(endTime);
+
+                return this.todaysReservations.some(res => {
+                    if (parseInt(res.room_id) !== parseInt(roomId)) return false;
+                    if (res.status !== 'Pending') return false;
+                    const resStart = toMinutes(res.start_time);
+                    const resEnd = toMinutes(res.end_time);
+                    return !(selEnd <= resStart || selStart >= resEnd);
+                });
+            },
+
+            getNowTime() {
+                const now = new Date();
+                return now.toTimeString().slice(0,5); // "HH:MM"
+            },
+
+            getNowTimePlus(hours) {
+                const now = new Date();
+                now.setHours(now.getHours() + (hours || 1));
+                return now.toTimeString().slice(0,5);
             }
         }));
     });

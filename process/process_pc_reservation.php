@@ -152,14 +152,16 @@ try {
         student_id, 
         start_time, 
         end_time, 
-        purpose
+        purpose,
+        status
     ) VALUES (
         :reservation_id,
         :pc_id,
         :student_id,
         TO_TIMESTAMP(:start_time, 'YYYY-MM-DD HH24:MI:SS'),
         TO_TIMESTAMP(:end_time, 'YYYY-MM-DD HH24:MI:SS'),
-        :purpose
+        :purpose,
+        'Pending'
     )";
 
     $params = [

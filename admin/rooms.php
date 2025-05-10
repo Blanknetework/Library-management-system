@@ -38,32 +38,62 @@ $has_searched = isset($_GET['search']);
 
 // Fetch room reservations from database
 $room_reservations = [];
+$pending_reservations = [];
 $conn = getOracleConnection();
 if ($conn) {
-    $sql = "SELECT r.reservation_id, r.room_id, r.student_id, s.full_name, 
-                   TO_CHAR(r.start_time, 'YYYY-MM-DD') as reservation_date,
-                   TO_CHAR(r.start_time, 'HH24:MI:SS') as start_time,
-                   TO_CHAR(r.end_time, 'HH24:MI:SS') as end_time,
-                   r.purpose
+    // Get pending reservations
+    $pending_sql = "SELECT r.reservation_id, r.room_id, r.student_id, s.full_name, 
+                   TO_CHAR(r.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+                   TO_CHAR(r.end_time, 'YYYY-MM-DD HH24:MI:SS') as end_time,
+                   r.purpose,
+                   r.status,
+                   r.approved_by,
+                   TO_CHAR(r.approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date
             FROM sys.room_reservation r
-            JOIN sys.students s ON r.student_id = s.student_id";
-    
-    // Add search condition if search is performed
+            JOIN sys.students s ON r.student_id = s.student_id
+            WHERE r.status = 'Pending'
+            ORDER BY r.start_time DESC";
+    $pending_stmt = oci_parse($conn, $pending_sql);
+    if ($pending_stmt && oci_execute($pending_stmt)) {
+        while ($row = oci_fetch_assoc($pending_stmt)) {
+            $pending_reservations[] = [
+                'reservation_id' => $row['RESERVATION_ID'],
+                'room_id' => $row['ROOM_ID'],
+                'student_id' => $row['STUDENT_ID'],
+                'student_name' => $row['FULL_NAME'],
+                'start_time' => $row['START_TIME'],
+                'end_time' => $row['END_TIME'],
+                'purpose' => $row['PURPOSE'],
+                'status' => $row['STATUS'],
+                'approved_by' => $row['APPROVED_BY'],
+                'approval_date' => $row['APPROVAL_DATE']
+            ];
+        }
+        oci_free_statement($pending_stmt);
+    }
+
+    // Get approved/rejected reservations
+    $sql = "SELECT r.reservation_id, r.room_id, r.student_id, s.full_name, 
+                   TO_CHAR(r.start_time, 'YYYY-MM-DD HH24:MI:SS') as start_time,
+                   TO_CHAR(r.end_time, 'YYYY-MM-DD HH24:MI:SS') as end_time,
+                   r.purpose,
+                   r.status,
+                   r.approved_by,
+                   TO_CHAR(r.approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date
+            FROM sys.room_reservation r
+            JOIN sys.students s ON r.student_id = s.student_id
+            WHERE r.status != 'Pending'";
     if (!empty($search_term)) {
-        $sql .= " WHERE UPPER(s.full_name) LIKE UPPER('%' || :search_term || '%') 
+        $sql .= " AND (UPPER(s.full_name) LIKE UPPER('%' || :search_term || '%') 
                  OR UPPER(s.student_id) LIKE UPPER('%' || :search_term || '%')
                  OR UPPER(r.purpose) LIKE UPPER('%' || :search_term || '%')
-                 OR TO_CHAR(r.room_id) LIKE '%' || :search_term || '%'";
+                 OR TO_CHAR(r.room_id) LIKE '%' || :search_term || '%')";
     }
-    
     $sql .= " ORDER BY r.start_time DESC";
-    
     $stmt = oci_parse($conn, $sql);
-    
     if (!empty($search_term)) {
         oci_bind_by_name($stmt, ":search_term", $search_term);
     }
-    
     if ($stmt && oci_execute($stmt)) {
         while ($row = oci_fetch_assoc($stmt)) {
             $room_reservations[] = [
@@ -71,15 +101,72 @@ if ($conn) {
                 'room_id' => $row['ROOM_ID'],
                 'student_id' => $row['STUDENT_ID'],
                 'student_name' => $row['FULL_NAME'],
-                'reservation_date' => $row['RESERVATION_DATE'],
                 'start_time' => $row['START_TIME'],
                 'end_time' => $row['END_TIME'],
-                'purpose' => $row['PURPOSE']
+                'purpose' => $row['PURPOSE'],
+                'status' => $row['STATUS'],
+                'approved_by' => $row['APPROVED_BY'],
+                'approval_date' => $row['APPROVAL_DATE']
             ];
         }
         oci_free_statement($stmt);
     }
     oci_close($conn);
+}
+
+// Handle reservation approval/rejection
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    $reservation_id = $_POST['reservation_id'] ?? null;
+    $action = $_POST['action'];
+    if ($reservation_id && ($action === 'approve' || $action === 'reject')) {
+        $conn = getOracleConnection();
+        if ($conn) {
+            $status = $action === 'approve' ? 'Approved' : 'Rejected';
+            $admin = $_SESSION['admin_username'];
+            
+            // First get the room_id and start_time for this reservation
+            $get_reservation_sql = "SELECT room_id, start_time FROM sys.room_reservation WHERE reservation_id = :reservation_id";
+            $get_stmt = oci_parse($conn, $get_reservation_sql);
+            oci_bind_by_name($get_stmt, ":reservation_id", $reservation_id);
+            oci_execute($get_stmt);
+            $reservation_data = oci_fetch_assoc($get_stmt);
+            
+            if ($reservation_data) {
+                $room_id = $reservation_data['ROOM_ID'];
+                $start_time = $reservation_data['START_TIME'];
+                
+                // Update the reservation status
+                $update_sql = "UPDATE sys.room_reservation 
+                             SET status = :status,
+                                 approved_by = :admin,
+                                 approval_date = SYSTIMESTAMP
+                             WHERE reservation_id = :reservation_id";
+                $stmt = oci_parse($conn, $update_sql);
+                if ($stmt) {
+                    oci_bind_by_name($stmt, ":status", $status);
+                    oci_bind_by_name($stmt, ":admin", $admin);
+                    oci_bind_by_name($stmt, ":reservation_id", $reservation_id);
+                    
+                    if (oci_execute($stmt)) {
+                        // If approved, update room status to ACTIVE
+                        if ($action === 'approve') {
+                            $update_room_sql = "UPDATE sys.room_status 
+                                              SET status = 'ACTIVE',
+                                                  last_updated = SYSTIMESTAMP
+                                              WHERE room_id = :room_id";
+                            $room_stmt = oci_parse($conn, $update_room_sql);
+                            oci_bind_by_name($room_stmt, ":room_id", $room_id);
+                            oci_execute($room_stmt);
+                        }
+                        
+                        header("Location: rooms.php?success=" . ($action === 'approve' ? 'approved' : 'rejected'));
+                        exit();
+                    }
+                }
+            }
+            oci_close($conn);
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -233,71 +320,141 @@ if ($conn) {
                         </div>
                     </form>
 
+                    <!-- Pending Reservations Section -->
+                    <div class="mb-8">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Pending Reservations</h3>
                     <div class="bg-white rounded-lg shadow overflow-hidden border border-blue-200">
-                        <?php if (empty($room_reservations) && $has_searched): ?>
+                            <?php if (empty($pending_reservations)): ?>
                             <div class="p-8 text-center">
-                                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                <h3 class="mt-2 text-sm font-medium text-gray-900">No results found</h3>
-                                <p class="mt-1 text-sm text-gray-500">We couldn't find any reservations matching your search.</p>
+                                    <p class="text-gray-500">No pending reservations</p>
                             </div>
                         <?php else: ?>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Date Reserved</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Reservation Holder (ID)</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Reservation Date</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Room Reserved</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Start time</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">End time</th>
-                                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
-                                        <?php if (empty($room_reservations)): ?>
-                                            <?php for ($i = 0; $i < 10; $i++): ?>
+                                            <?php foreach ($pending_reservations as $reservation): ?>
                                                 <tr>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">&nbsp;</td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"></td>
-                                                </tr>
-                                            <?php endfor; ?>
-                                        <?php else: ?>
-                                            <?php foreach ($room_reservations as $reservation): ?>
-                                                <tr>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><?php echo htmlspecialchars($reservation['reservation_date']); ?></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                                        <?php echo htmlspecialchars($reservation['student_name']); ?> 
-                                                        (<?php echo htmlspecialchars($reservation['student_id']); ?>)
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                        Room <?php echo htmlspecialchars($reservation['room_id']); ?>
                                                     </td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo htmlspecialchars($reservation['reservation_date']); ?></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Room <?php echo htmlspecialchars($reservation['room_id']); ?></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo htmlspecialchars($reservation['start_time']); ?></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><?php echo htmlspecialchars($reservation['end_time']); ?></td>
-                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                                                        <form method="post" onsubmit="return confirm('Are you sure you want to remove this reservation?');" class="flex justify-center">
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php echo htmlspecialchars($reservation['student_name']); ?>
+                                                        <br>
+                                                        <span class="text-xs text-gray-400">
+                                                            <?php echo htmlspecialchars($reservation['student_id']); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php echo htmlspecialchars($reservation['start_time']); ?> - 
+                                                        <?php echo htmlspecialchars($reservation['end_time']); ?>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php echo htmlspecialchars($reservation['purpose']); ?>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                            Pending
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <form method="post" class="flex space-x-2">
                                                             <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['reservation_id']); ?>">
-                                                            <button type="submit" name="remove_reservation" class="text-red-600 hover:text-red-900 p-1 rounded-full hover:bg-red-100 transition-colors duration-200">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                                    <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
-                                                                </svg>
+                                                            <button type="submit" name="action" value="approve" 
+                                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                                                                Approve
+                                                            </button>
+                                                            <button type="submit" name="action" value="reject" 
+                                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                                Reject
                                                             </button>
                                                         </form>
                                                     </td>
                                                 </tr>
                                             <?php endforeach; ?>
-                                        <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Approved/Rejected Reservations Section -->
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 mb-4">All Reservations</h3>
+                        <div class="bg-white rounded-lg shadow overflow-hidden border border-blue-200">
+                            <?php if (empty($room_reservations)): ?>
+                                <div class="p-8 text-center">
+                                    <p class="text-gray-500">No reservations found</p>
+                                </div>
+                                        <?php else: ?>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-50">
+                                            <tr>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Room</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Purpose</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200">
+                                            <?php foreach ($room_reservations as $reservation): ?>
+                                                <tr>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                                        Room <?php echo htmlspecialchars($reservation['room_id']); ?>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php echo htmlspecialchars($reservation['student_name']); ?> 
+                                                        <br>
+                                                        <span class="text-xs text-gray-400">
+                                                            <?php echo htmlspecialchars($reservation['student_id']); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php echo htmlspecialchars($reservation['start_time']); ?> - 
+                                                        <?php echo htmlspecialchars($reservation['end_time']); ?>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <?php echo htmlspecialchars($reservation['purpose']); ?>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap">
+                                                        <span
+                                                            :class="{
+                                                                'text-red-500': hasApprovedConflict(i, roomStartTime, roomEndTime),
+                                                                'text-yellow-500': hasPendingConflict(i, roomStartTime, roomEndTime),
+                                                                'text-green-500': !hasApprovedConflict(i, roomStartTime, roomEndTime) && !hasPendingConflict(i, roomStartTime, roomEndTime)
+                                                            }"
+                                                            x-text="hasApprovedConflict(i, roomStartTime, roomEndTime) ? 'Currently Occupied' : hasPendingConflict(i, roomStartTime, roomEndTime) ? 'Pending Approval' : 'Available'">
+                                                        </span>
+                                                    </td>
+                                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                        <form method="post" onsubmit="return confirm('Are you sure you want to remove this reservation?');">
+                                                            <input type="hidden" name="reservation_id" value="<?php echo htmlspecialchars($reservation['reservation_id']); ?>">
+                                                            <button type="submit" name="remove_reservation" 
+                                                                    class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                                Remove
+                                                            </button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
                         <?php endif; ?>
+                        </div>
                     </div>
                 </main>
             </div>

@@ -60,7 +60,10 @@ if ($table_exists) {
         student_id VARCHAR2(20) NOT NULL,
         start_time TIMESTAMP NOT NULL,
         end_time TIMESTAMP NOT NULL,
-        purpose VARCHAR2(50) NOT NULL
+        purpose VARCHAR2(50) NOT NULL,
+        status VARCHAR2(20) DEFAULT 'Pending' NOT NULL,
+        approved_by VARCHAR2(50),
+        approval_date TIMESTAMP
     )";
     
     $create_stmt = oci_parse($conn, $create_table_sql);

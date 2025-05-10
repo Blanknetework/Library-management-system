@@ -16,7 +16,7 @@ if (file_exists(__DIR__ . '/../.env')) {
         $key = trim($key);
         $value = trim($value);
         
-        // Remove quotes if present
+        
         if (strpos($value, '"') === 0 || strpos($value, "'") === 0) {
             $value = substr($value, 1, -1);
         }
@@ -34,7 +34,7 @@ define('SMTP_PORT', getenv('SMTP_PORT') ?: '587');
 define('SMTP_FROM_NAME', getenv('SMTP_FROM_NAME') ?: 'QCU Library');
 define('SMTP_FROM_EMAIL', getenv('SMTP_FROM_EMAIL') ?: '');
 
-// Also important - disable debug output in production
+// disable debug output in production
 function sendOverdueNotification($studentEmail, $studentName, $bookTitle, $dueDate) {
     try {
         $mail = new PHPMailer(true);
