@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     // Query student details
     $sql = "SELECT student_id, full_name, course, section 
-            FROM students 
+            FROM sys.students 
             WHERE student_id = :student_id";
     
     error_log("Executing SQL: " . $sql);

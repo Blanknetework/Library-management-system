@@ -2,8 +2,36 @@
 
 session_start();
 
-
 require_once 'config.php';
+
+// Initialize $announcements array
+$announcements = [];
+
+// Get announcements from database
+$conn = getOracleConnection();
+if ($conn) {
+    $sql = "SELECT 
+            announcement_id, 
+            title, 
+            description, 
+            TO_CHAR(event_date, 'YYYY-MM-DD') as event_date, 
+            location, 
+            created_by, 
+            TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI:SS') as created_at,
+            status 
+        FROM sys.event_announcements 
+        WHERE status = 'active'
+        ORDER BY event_date ASC";
+    
+    $stmt = oci_parse($conn, $sql);
+    if ($stmt && oci_execute($stmt)) {
+        while ($row = oci_fetch_assoc($stmt)) {
+            $announcements[] = $row;
+        }
+        oci_free_statement($stmt);
+    }
+    oci_close($conn);
+}
 
 // Check for login errors
 $login_errors = [];
@@ -20,7 +48,8 @@ if (isset($_SESSION['login_errors'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QCU Library Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <!-- Load Alpine.js from CDN with defer -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.3/dist/cdn.min.js"></script>
     <style>
         .bg-library {
             background-image: url('assets/images/libbg.png');
@@ -30,53 +59,162 @@ if (isset($_SESSION['login_errors'])) {
         }
     </style>
 </head>
-<body class="bg-library min-h-screen" x-data="app">
-    <div class="min-h-screen flex flex-col items-center justify-center p-4">
-        <div class="text-center text-white mb-6">
-            <img src="assets/images/QCU_Logo_2019.png" alt="QCU Logo" class="w-20 h-20 mx-auto mb-2">
-            <h1 class="text-2xl font-bold mb-1">QCU Library</h1>
-            <p class="text-sm italic">
-                "Empowering the students of Quezon City University through knowledge<br>
-                and resources for academic excellence."
-            </p>
-        </div>
-        
-        <!-- Login Form Card -->
-        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
-            <div class="text-center mb-6">
-                <h2 class="text-gray-600 text-sm mb-1">WELCOME TO</h2>
-                <h1 class="text-blue-900 text-2xl font-bold mb-2">QCU LIBRARY!</h1>
-                <p class="text-gray-600 text-sm">Enter your student number to log-in</p>
+<body class="bg-library min-h-screen" x-data="app()">
+    <div class="min-h-screen flex">
+        <!-- Two-column layout: Events on left (40%) and Login on right (60%) -->
+        <div class="flex flex-col md:flex-row w-full h-screen">
+            <!-- Left column for event announcements (40% width) -->
+            <div class="w-full md:w-[40%] h-full flex">
+                <div class="bg-white w-full flex flex-col shadow-md">
+                    <div class="bg-blue-900 text-white text-center py-3 px-4 border-b border-blue-800">
+                        <h2 class="text-xl font-bold">Event Announcements</h2>
+                        <p class="text-sm text-blue-100">Latest library events and activities</p>
+                    </div>
+                    
+                    <?php if (empty($announcements)): ?>
+                        <div class="text-center py-16 px-4 flex flex-col items-center justify-center flex-grow">
+                            <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                            <h3 class="text-lg font-medium text-gray-600">No upcoming events</h3>
+                            <p class="text-gray-500 mt-2">Check back later for library events and announcements.</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="overflow-y-auto flex-grow px-4 py-4" style="scrollbar-width: thin;">
+                            <?php foreach ($announcements as $announcement): ?>
+                                <div class="mb-4 bg-white border-l-4 border-blue-600 shadow-sm hover:shadow transition-shadow duration-300 overflow-hidden">
+                                    <div class="bg-gray-50 px-4 py-3 flex justify-between items-center border-b">
+                                        <h3 class="font-semibold text-blue-900"><?php echo htmlspecialchars($announcement['TITLE']); ?></h3>
+                                        <div class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">
+                                            <?php 
+                                                $event_date = new DateTime($announcement['EVENT_DATE']);
+                                                $today = new DateTime();
+                                                $interval = $today->diff($event_date);
+                                                
+                                                if ($interval->days == 0) {
+                                                    echo "Today";
+                                                } else if ($interval->days == 1) {
+                                                    echo "Tomorrow";
+                                                } else {
+                                                    echo "In " . $interval->days . " days";
+                                                }
+                                            ?>
+                                        </div>
+                                    </div>
+                                    <div class="p-4">
+                                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                                            <div class="flex items-center mr-4">
+                                                <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                </svg>
+                                                <span><?php echo htmlspecialchars($announcement['EVENT_DATE']); ?></span>
+                                            </div>
+                                            
+                                            <?php if (!empty($announcement['LOCATION'])): ?>
+                                                <div class="flex items-center">
+                                                    <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    </svg>
+                                                    <span><?php echo htmlspecialchars($announcement['LOCATION']); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                        
+                                        <p class="text-gray-700 text-sm mb-3 leading-relaxed">
+                                            <?php
+                                                $description = $announcement['DESCRIPTION'];
+                                                // Convert Oracle LOB to string if needed
+                                                if (is_object($description) && method_exists($description, 'load')) {
+                                                    $description = $description->load();
+                                                }
+                                                echo nl2br(htmlspecialchars(strlen($description) > 150 ? substr($description, 0, 150) . '...' : $description));
+                                            ?>
+                                        </p>
+                                        
+                                        <div x-data="{ showDetails: false }">
+                                            <button 
+                                                @click="showDetails = !showDetails" 
+                                                class="text-sm text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                                            >
+                                                <span x-show="!showDetails">Read more</span>
+                                                <span x-show="showDetails">Show less</span>
+                                                <svg x-show="!showDetails" class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                                </svg>
+                                                <svg x-show="showDetails" class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                                </svg>
+                                            </button>
+                                            
+                                            <div x-show="showDetails" class="mt-3 text-sm text-gray-700 bg-gray-50 p-3 rounded border-l-2 border-blue-400">
+                                                <?php 
+                                                    // Convert Oracle LOB to string if needed
+                                                    $full_description = $announcement['DESCRIPTION'];
+                                                    if (is_object($full_description) && method_exists($full_description, 'load')) {
+                                                        $full_description = $full_description->load();
+                                                    }
+                                                    echo nl2br(htmlspecialchars($full_description)); 
+                                                ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+            
+            <!-- Right column for login (60% width) -->
+            <div class="w-full md:w-[60%] flex flex-col items-center justify-start pt-20 md:pt-24 pl-0 md:pl-8">
+                <div class="text-center text-white mb-8">
+                    <img src="assets/images/QCU_Logo_2019.png" alt="QCU Logo" class="w-20 h-20 mx-auto mb-2">
+                    <h1 class="text-2xl font-bold mb-1">QCU Library</h1>
+                    <p class="text-sm italic">
+                        "Empowering the students of Quezon City University through knowledge<br>
+                        and resources for academic excellence."
+                    </p>
                 </div>
                 
-                <!-- Display error messages if any -->
-                <?php if (!empty($login_errors)): ?>
-                <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
-                    <ul class="list-disc pl-5">
-                        <?php foreach ($login_errors as $error): ?>
-                            <li><?php echo htmlspecialchars($error); ?></li>
-                        <?php endforeach; ?>
-                    </ul>
+                <!-- Login Form Card -->
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 mt-4">
+                    <div class="text-center mb-6">
+                        <h2 class="text-gray-600 text-sm mb-1">WELCOME TO</h2>
+                        <h1 class="text-blue-900 text-2xl font-bold mb-2">QCU LIBRARY!</h1>
+                        <p class="text-gray-600 text-sm">Enter your student number to log-in</p>
+                        </div>
+                        
+                        <!-- Display error messages if any -->
+                        <?php if (!empty($login_errors)): ?>
+                        <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                            <ul class="list-disc pl-5">
+                                <?php foreach ($login_errors as $error): ?>
+                                    <li><?php echo htmlspecialchars($error); ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                        <?php endif; ?>
+                        
+                    <!-- Student ID Form -->
+                    <form id="studentIdForm" class="space-y-4" @submit.prevent="checkStudent">
+                        <div>
+                            <input type="text" 
+                                id="student_id" 
+                                x-ref="studentIdInput"
+                                autocomplete="off" 
+                                name="student_id" 
+                                class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                                placeholder="Student Number"
+                                required>
+                        </div>
+                        <button type="submit" 
+                                class="w-full bg-blue-900 text-white font-medium rounded py-2 hover:bg-blue-800 transition duration-200">
+                            CONTINUE
+                        </button>
+                    </form>
                 </div>
-                <?php endif; ?>
-                
-            <!-- Student ID Form -->
-            <form id="studentIdForm" class="space-y-4" @submit.prevent="checkStudent">
-                <div>
-                    <input type="text" 
-                           id="student_id" 
-                           x-ref="studentIdInput"
-                           autocomplete="off" 
-                           name="student_id" 
-                           class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                           placeholder="Student Number"
-                               required>
-                </div>
-                <button type="submit" 
-                        class="w-full bg-blue-900 text-white font-medium rounded py-2 hover:bg-blue-800 transition duration-200">
-                    CONTINUE
-                </button>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -123,15 +261,15 @@ if (isset($_SESSION['login_errors'])) {
                 <button @click="activeTab = 'pc'; resetForm()" 
                         :class="activeTab === 'pc' ? 'bg-blue-900 text-white' : 'bg-white text-blue-900 border border-blue-900'"
                         class="flex items-center gap-2 px-4 py-2 rounded text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                     PC RESERVATION
                 </button>
                 <button @click="activeTab = 'room'; resetForm()"
                         :class="activeTab === 'room' ? 'bg-blue-900 text-white' : 'bg-white text-blue-900 border border-blue-900'"
                         class="flex items-center gap-2 px-4 py-2 rounded text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                     LIBRARY ROOM RESERVATION
@@ -139,7 +277,7 @@ if (isset($_SESSION['login_errors'])) {
                 <button @click="activeTab = 'book'; resetForm()"
                         :class="activeTab === 'book' ? 'bg-blue-900 text-white' : 'bg-white text-blue-900 border border-blue-900'"
                         class="flex items-center gap-2 px-4 py-2 rounded text-sm">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 4v12l-4-2-4 2V4M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
                     BOOK BORROWING
@@ -147,7 +285,7 @@ if (isset($_SESSION['login_errors'])) {
             </div>
             
             <div :class="{'grid grid-cols-2 gap-4': activeTab !== 'book', 'block': activeTab === 'book'}">
-                <!-- Left Column - Reservation Form -->
+                <!-- Column content -->
                 <div class="space-y-3">
                     <!-- PC Reservation Form -->
                     <template x-if="activeTab === 'pc'">
@@ -288,18 +426,45 @@ if (isset($_SESSION['login_errors'])) {
                                     </div>
                                 </div>
                                 
-                                <!-- Search Box -->
-                                <div class="relative w-full">
-                                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                        </svg>
+                                <!-- Search and Filter Section -->
+                                <div class="flex flex-col md:flex-row gap-4">
+                                    <!-- Search Box -->
+                                    <div class="relative w-full md:w-2/3">
+                                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <input type="text" 
+                                            x-model="bookSearch" 
+                                            @input="searchBooks"
+                                            class="w-full pl-12 pr-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                                            placeholder="Search books by title or author...">
                                     </div>
-                                    <input type="text" 
-                                        x-model="bookSearch" 
-                                        @input="searchBooks"
-                                        class="w-full pl-12 pr-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-                                        placeholder="Search books by title or author...">
+                                    
+                                    <!-- Filters -->
+                                    <div class="flex flex-row gap-2 md:w-1/3">
+                                        <!-- Condition Filter -->
+                                        <select 
+                                            x-model="conditionFilter" 
+                                            @change="applyFilters()"
+                                            class="w-1/2 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <option value="">All Conditions</option>
+                                            <option value="Good">Good</option>
+                                            <option value="Bad">Bad</option>
+                                        </select>
+                                        
+                                        <!-- Branch Filter -->
+                                        <select 
+                                            x-model="branchFilter" 
+                                            @change="applyFilters()"
+                                            class="w-1/2 px-3 py-2 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <option value="">All Branches</option>
+                                            <option value="Main Library">Main Library</option>
+                                            <option value="Batasan Library">Batasan Library</option>
+                                            <option value="SM Library">SM Library</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -318,6 +483,14 @@ if (isset($_SESSION['login_errors'])) {
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-gray-500 font-medium min-w-[4rem]">Author:</span>
                                                     <span class="text-gray-800" x-text="book.author"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-gray-500 font-medium min-w-[4rem]">Condition:</span>
+                                                    <span class="text-gray-800" x-text="book.condition || 'Not specified'"></span>
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-gray-500 font-medium min-w-[4rem]">Branch:</span>
+                                                    <span class="text-gray-800" x-text="book.branch || 'Main Library'"></span>
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <span class="text-gray-500 font-medium min-w-[4rem]">Status:</span>
@@ -444,6 +617,11 @@ if (isset($_SESSION['login_errors'])) {
 
                 <!-- Right Column - Status Display -->
                 <div x-show="activeTab !== 'book'">
+                    <!-- Announcements Status -->
+                    <template x-if="activeTab === 'announcements'">
+                        <!-- Right column removed as requested -->
+                    </template>
+
                     <!-- PC Status -->
                     <template x-if="activeTab === 'pc'">
                     <div class="border rounded">
@@ -520,48 +698,7 @@ if (isset($_SESSION['login_errors'])) {
         </div>
     </div>
 
-    <!-- Add this section after the PC reservation form -->
-    <div class="mt-8 bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div class="p-4 bg-gray-50 border-b border-gray-200">
-            <h3 class="text-lg font-semibold text-blue-900">My PC Reservation Requests</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-blue-900 text-white">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">PC Number</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Time</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Purpose</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    <template x-for="request in pcRequests" :key="request.reservation_id">
-                        <tr class="hover:bg-gray-50 transition duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-800" x-text="'PC ' + request.pc_id"></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-600" x-text="request.start_time + ' - ' + request.end_time"></td>
-                            <td class="px-6 py-4 whitespace-nowrap text-gray-600" x-text="request.purpose"></td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span :class="{
-                                    'bg-yellow-100 text-yellow-800': request.status === 'Pending',
-                                    'bg-green-100 text-green-800': request.status === 'Approved',
-                                    'bg-red-100 text-red-800': request.status === 'Rejected'
-                                }" class="px-3 py-1 rounded-full text-xs font-medium" x-text="request.status">
-                                </span>
-                            </td>
-                        </tr>
-                    </template>
-                    <!-- Empty state -->
-                    <tr x-show="pcRequests.length === 0">
-                        <td colspan="4" class="px-6 py-8 text-center">
-                            <p class="text-gray-500 text-sm">You don't have any PC reservation requests yet.</p>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
+   
     <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('app', () => ({
@@ -595,8 +732,72 @@ if (isset($_SESSION['login_errors'])) {
             todaysReservations: [],
             // Track pending room reservations made by this user that may not be on server yet
             pendingRoomRequests: [],
+            conditionFilter: '',
+            branchFilter: '',
 
-           
+            // Add this method to initialize our checkStudent function
+            checkStudent: function() {
+                console.log('checkStudent function called');
+                const studentId = this.$refs.studentIdInput.value.trim();
+                console.log('Student ID:', studentId);
+                
+                if (!studentId) {
+                    alert('Please enter your Student ID.');
+                    return;
+                }
+                
+                // Debug the exact request being sent
+                console.log('Sending request to check_student.php with data:', JSON.stringify({ student_id: studentId }));
+                
+                // Use a regular Promise pattern instead of async/await to avoid any issues
+                fetch('check_student.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ student_id: studentId })
+                })
+                .then(response => {
+                    console.log('Response received:', response);
+                    // Log the raw response for debugging
+                    return response.text().then(text => {
+                        console.log('Raw response:', text);
+                        try {
+                            // Convert text back to JSON
+                            return JSON.parse(text);
+                        } catch (e) {
+                            console.error('Failed to parse JSON:', e);
+                            throw new Error('Invalid JSON response: ' + text);
+                        }
+                    });
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    
+                    if (data.success) {
+                        this.studentDetails = data.student;
+                        this.showModal = true;
+                        this.loadPCStatus();
+                        this.loadBooks();
+                        this.loadBorrowingRequests();
+                        this.isLoggedIn = true;
+                    } else {
+                        alert(data.message || 'Student not found. Please check your ID.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error in checkStudent function:', error);
+                    alert('An error occurred: ' + error.message);
+                    
+                    // Additional debugging
+                    if (error.name === 'SyntaxError') {
+                        alert('Server returned invalid JSON. Check check_student.php for errors.');
+                    } else if (error.message.includes('Failed to fetch')) {
+                        alert('Network error. Check if check_student.php exists and server is running.');
+                    }
+                });
+            },
+
             get pcStatus() {
                 return this.pcStatusData;
             },
@@ -847,9 +1048,9 @@ if (isset($_SESSION['login_errors'])) {
                         const newStatus = { ...data.room_status_map };
                         
                         // Preserve any local PENDING states that might not be reflected on the server yet
-                        for (let i = 1; i <= 5; i++) {
-                            if (currentStatus[i] === 'PENDING' && newStatus[i] === 'AVAILABLE') {
-                                newStatus[i] = 'PENDING';
+                            for (let i = 1; i <= 5; i++) {
+                                if (currentStatus[i] === 'PENDING' && newStatus[i] === 'AVAILABLE') {
+                                    newStatus[i] = 'PENDING';
                             }
                         }
                         
@@ -1064,39 +1265,6 @@ if (isset($_SESSION['login_errors'])) {
                 }
             },
 
-            async checkStudent() {
-                const studentId = this.$refs.studentIdInput.value.trim();
-                if (!studentId) {
-                    alert('Please enter your Student ID.');
-                    return;
-                }
-                try {
-                    const response = await fetch('check_student.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ student_id: studentId })
-                    });
-                    
-                    const data = await response.json();
-                    
-                    if (data.success) {
-                        this.studentDetails = data.student;
-                        this.showModal = true;
-                        await this.loadPCStatus();
-                        await this.loadBooks();
-                        await this.loadBorrowingRequests();
-                        this.isLoggedIn = true;
-                    } else {
-                        alert(data.message || 'Student not found. Please check your ID.');
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                }
-            },
-
             getRoomStatusText(status) {
                 switch(status) {
                     case 'ACTIVE':
@@ -1172,6 +1340,44 @@ if (isset($_SESSION['login_errors'])) {
                     book.title.toLowerCase().includes(searchTerm) ||
                     book.author.toLowerCase().includes(searchTerm)
                 );
+                
+                // Apply filters after search
+                this.applyFilters();
+            },
+            
+            applyFilters() {
+                const searchTerm = this.bookSearch.toLowerCase();
+                
+                // Start with all books or the current search results
+                let filtered = this.books;
+                
+                // Apply search filter first
+                if (searchTerm) {
+                    filtered = filtered.filter(book => 
+                        book.title.toLowerCase().includes(searchTerm) ||
+                        book.author.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
+                // Apply condition filter
+                if (this.conditionFilter) {
+                    filtered = filtered.filter(book => 
+                        book.condition && book.condition.toLowerCase() === this.conditionFilter.toLowerCase()
+                    );
+                }
+                
+                // Apply branch filter
+                if (this.branchFilter) {
+                    console.log("Filtering by branch:", this.branchFilter);
+                    filtered = filtered.filter(book => {
+                        // Log for debugging
+                        console.log(`Book ${book.title} - Branch: "${book.branch}" vs Filter: "${this.branchFilter}"`);
+                        return book.branch && book.branch.toLowerCase() === this.branchFilter.toLowerCase();
+                    });
+                }
+                
+                console.log(`Filter result: ${filtered.length} books remaining`);
+                this.filteredBooks = filtered;
             },
 
             async requestBook(book) {

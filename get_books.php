@@ -13,6 +13,8 @@ $sql = "SELECT
             b.reference_id as book_id,
             b.title,
             b.author,
+            b.quality as condition,
+            NVL(b.branch, 'Main Library') as branch,
             CASE 
                 WHEN EXISTS (
                     SELECT 1 FROM sys.book_borrowing_requests br 
@@ -44,6 +46,8 @@ while ($row = oci_fetch_assoc($stmt)) {
         'book_id' => $row['BOOK_ID'],
         'title' => $row['TITLE'],
         'author' => $row['AUTHOR'],
+        'condition' => $row['CONDITION'],
+        'branch' => $row['BRANCH'],
         'availability' => $row['AVAILABILITY']
     ];
 }

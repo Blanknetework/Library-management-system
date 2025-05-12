@@ -158,6 +158,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                             oci_bind_by_name($room_stmt, ":room_id", $room_id);
                             oci_execute($room_stmt);
                         }
+                        // If rejected, delete the reservation completely
+                        else if ($action === 'reject') {
+                            // First make sure room status is AVAILABLE
+                            $update_room_sql = "UPDATE sys.room_status 
+                                              SET status = 'AVAILABLE',
+                                                  last_updated = SYSTIMESTAMP
+                                              WHERE room_id = :room_id";
+                            $room_stmt = oci_parse($conn, $update_room_sql);
+                            oci_bind_by_name($room_stmt, ":room_id", $room_id);
+                            oci_execute($room_stmt);
+                            
+                            // Then delete the reservation completely
+                            $delete_sql = "DELETE FROM sys.room_reservation WHERE reservation_id = :reservation_id";
+                            $delete_stmt = oci_parse($conn, $delete_sql);
+                            oci_bind_by_name($delete_stmt, ":reservation_id", $reservation_id);
+                            oci_execute($delete_stmt);
+                        }
                         
                         header("Location: rooms.php?success=" . ($action === 'approve' ? 'approved' : 'rejected'));
                         exit();
@@ -168,7 +185,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
         }
     }
 }
-?>
+?>  
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -388,7 +405,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                         </div>
                     </div>
 
-                    <!-- Approved/Rejected Reservations Section -->
+                    <!-- All Reservations Section -->
                     <div>
                         <h3 class="text-lg font-semibold text-gray-900 mb-4">All Reservations</h3>
                         <div class="bg-white rounded-lg shadow overflow-hidden border border-blue-200">
@@ -430,13 +447,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                                         <?php echo htmlspecialchars($reservation['purpose']); ?>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap">
-                                                        <span
-                                                            :class="{
-                                                                'text-red-500': hasApprovedConflict(i, roomStartTime, roomEndTime),
-                                                                'text-yellow-500': hasPendingConflict(i, roomStartTime, roomEndTime),
-                                                                'text-green-500': !hasApprovedConflict(i, roomStartTime, roomEndTime) && !hasPendingConflict(i, roomStartTime, roomEndTime)
-                                                            }"
-                                                            x-text="hasApprovedConflict(i, roomStartTime, roomEndTime) ? 'Currently Occupied' : hasPendingConflict(i, roomStartTime, roomEndTime) ? 'Pending Approval' : 'Available'">
+                                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                            <?php echo $reservation['status'] === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                                            <?php echo htmlspecialchars($reservation['status']); ?>
                                                         </span>
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

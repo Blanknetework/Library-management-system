@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 
 try {
     // Validate required fields
-    $required_fields = ['student_id', 'student_name', 'course_section', 'book_title', 'book_condition', 'date_borrowed'];
+    $required_fields = ['book_title', 'book_condition', 'date_borrowed'];
     foreach ($required_fields as $field) {
         if (empty($_POST[$field])) {
             throw new Exception("Field $field is required");
@@ -18,9 +18,6 @@ try {
     }
 
     // Sanitize input data
-    $student_id = filter_var($_POST['student_id'], FILTER_SANITIZE_STRING);
-    $student_name = filter_var($_POST['student_name'], FILTER_SANITIZE_STRING);
-    $course_section = filter_var($_POST['course_section'], FILTER_SANITIZE_STRING);
     $book_title = filter_var($_POST['book_title'], FILTER_SANITIZE_STRING);
     $book_condition = filter_var($_POST['book_condition'], FILTER_SANITIZE_STRING);
     $date_borrowed = filter_var($_POST['date_borrowed'], FILTER_SANITIZE_STRING);
@@ -42,36 +39,6 @@ try {
     
     // Begin transaction
     oci_set_action($conn, 'process_book_upload');
-    
- 
-    $student_check_sql = "SELECT COUNT(*) as count FROM sys.students WHERE student_id = :student_id";
-    $student_check_stmt = oci_parse($conn, $student_check_sql);
-    if (!$student_check_stmt) {
-        throw new Exception("Database error: " . oci_error($conn)['message']);
-    }
-    
-    oci_bind_by_name($student_check_stmt, ":student_id", $student_id);
-    oci_execute($student_check_stmt);
-    
-    $row = oci_fetch_assoc($student_check_stmt);
-    if (!$row || $row['COUNT'] == 0) {
-       
-        $student_insert_sql = "INSERT INTO sys.students (student_id, full_name, course) 
-                               VALUES (:student_id, :full_name, :course)";
-        
-        $student_insert_stmt = oci_parse($conn, $student_insert_sql);
-        if (!$student_insert_stmt) {
-            throw new Exception("Database error: " . oci_error($conn)['message']);
-        }
-        
-        oci_bind_by_name($student_insert_stmt, ":student_id", $student_id);
-        oci_bind_by_name($student_insert_stmt, ":full_name", $student_name);
-        oci_bind_by_name($student_insert_stmt, ":course", $course_section);
-        
-        if (!oci_execute($student_insert_stmt, OCI_NO_AUTO_COMMIT)) {
-            throw new Exception("Failed to create student record: " . oci_error($student_insert_stmt)['message']);
-        }
-    }
     
     // Generate a unique reference ID for the book (e.g., BK-2023-00001)
     $ref_sql = "SELECT NVL(MAX(TO_NUMBER(REGEXP_SUBSTR(reference_id, '[0-9]+'))), 0) + 1 as next_id 
@@ -143,36 +110,6 @@ try {
         throw new Exception("Failed to insert book: " . oci_error($book_insert_stmt)['message']);
     }
     
-    // Record facility usage
-    $usage_sql = "INSERT INTO sys.facility_usage (
-                    usage_id, 
-                    student_id, 
-                    facility_type, 
-                    facility_id, 
-                    usage_date,
-                    usage_time
-                ) VALUES (
-                    sys.facility_usage_seq.NEXTVAL,
-                    :student_id,
-                    'Book',
-                    :book_id,
-                    TO_DATE(:usage_date, 'YYYY-MM-DD'),
-                    SYSTIMESTAMP
-                )";
-    
-    $usage_stmt = oci_parse($conn, $usage_sql);
-    if (!$usage_stmt) {
-        throw new Exception("Database error: " . oci_error($conn)['message']);
-    }
-    
-    oci_bind_by_name($usage_stmt, ":student_id", $student_id);
-    oci_bind_by_name($usage_stmt, ":book_id", $reference_id);
-    oci_bind_by_name($usage_stmt, ":usage_date", $date_borrowed);
-    
-    if (!oci_execute($usage_stmt, OCI_NO_AUTO_COMMIT)) {
-        throw new Exception("Failed to record facility usage: " . oci_error($usage_stmt)['message']);
-    }
-    
     // Commit all changes
     if (!oci_commit($conn)) {
         throw new Exception("Failed to commit transaction: " . oci_error($conn)['message']);
@@ -185,8 +122,6 @@ try {
         'data' => [
             'reference_id' => $reference_id,
             'book_title' => $book_title,
-            'student_id' => $student_id,
-            'student_name' => $student_name,
             'date_added' => $date_borrowed,
             'branch' => $branch
         ]
@@ -206,11 +141,8 @@ try {
     ]);
 } finally {
     // Clean up resources
-    if (isset($student_check_stmt)) oci_free_statement($student_check_stmt);
-    if (isset($student_insert_stmt)) oci_free_statement($student_insert_stmt);
     if (isset($ref_stmt)) oci_free_statement($ref_stmt);
     if (isset($book_insert_stmt)) oci_free_statement($book_insert_stmt);
-    if (isset($usage_stmt)) oci_free_statement($usage_stmt);
     if (isset($conn)) oci_close($conn);
 }
 ?> 

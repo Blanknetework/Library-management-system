@@ -1,0 +1,117 @@
+[2025-05-12 09:48:42] Attempting to connect to Oracle database
+[2025-05-12 09:48:42] Oracle connection successful
+[2025-05-12 09:48:42] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:48:42] SQL parsed successfully
+[2025-05-12 09:48:42] SQL executed successfully
+[2025-05-12 09:48:42] Fetched 2 rows from announcements query
+[2025-05-12 09:51:20] Attempting to connect to Oracle database
+[2025-05-12 09:51:20] Oracle connection successful
+[2025-05-12 09:51:20] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:51:20] SQL parsed successfully
+[2025-05-12 09:51:20] SQL executed successfully
+[2025-05-12 09:51:20] Fetched 2 rows from announcements query
+[2025-05-12 09:52:22] Attempting to connect to Oracle database
+[2025-05-12 09:52:22] Oracle connection successful
+[2025-05-12 09:52:22] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:52:22] SQL parsed successfully
+[2025-05-12 09:52:22] SQL executed successfully
+[2025-05-12 09:52:22] Fetched 2 rows from announcements query
+[2025-05-12 09:53:39] Attempting to connect to Oracle database
+[2025-05-12 09:53:40] Oracle connection successful
+[2025-05-12 09:53:40] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:53:40] SQL parsed successfully
+[2025-05-12 09:53:40] SQL executed successfully
+[2025-05-12 09:53:40] Fetched 2 rows from announcements query
+[2025-05-12 09:53:48] Attempting to connect to Oracle database
+[2025-05-12 09:53:48] Oracle connection successful
+[2025-05-12 09:53:48] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:53:48] SQL parsed successfully
+[2025-05-12 09:53:48] SQL executed successfully
+[2025-05-12 09:53:48] Fetched 2 rows from announcements query
+[2025-05-12 09:54:02] Attempting to connect to Oracle database
+[2025-05-12 09:54:02] Oracle connection successful
+[2025-05-12 09:54:02] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:54:02] SQL parsed successfully
+[2025-05-12 09:54:02] SQL executed successfully
+[2025-05-12 09:54:02] Fetched 2 rows from announcements query
+[2025-05-12 09:54:31] Attempting to connect to Oracle database
+[2025-05-12 09:54:31] Oracle connection successful
+[2025-05-12 09:54:31] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:54:31] SQL parsed successfully
+[2025-05-12 09:54:31] SQL executed successfully
+[2025-05-12 09:54:31] Fetched 2 rows from announcements query
+[2025-05-12 09:54:47] Attempting to connect to Oracle database
+[2025-05-12 09:54:47] Oracle connection successful
+[2025-05-12 09:54:47] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:54:47] SQL parsed successfully
+[2025-05-12 09:54:47] SQL executed successfully
+[2025-05-12 09:54:47] Fetched 2 rows from announcements query
+[2025-05-12 09:54:57] Attempting to connect to Oracle database
+[2025-05-12 09:54:58] Oracle connection successful
+[2025-05-12 09:54:58] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:54:58] SQL parsed successfully
+[2025-05-12 09:54:58] SQL executed successfully
+[2025-05-12 09:54:58] Fetched 2 rows from announcements query
+[2025-05-12 09:55:25] Attempting to connect to Oracle database
+[2025-05-12 09:55:25] Oracle connection successful
+[2025-05-12 09:55:25] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:55:25] SQL parsed successfully
+[2025-05-12 09:55:25] SQL executed successfully
+[2025-05-12 09:55:25] Fetched 2 rows from announcements query
+[2025-05-12 09:59:02] Attempting to connect to Oracle database
+[2025-05-12 09:59:02] Oracle connection successful
+[2025-05-12 09:59:02] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 09:59:02] SQL parsed successfully
+[2025-05-12 09:59:02] SQL executed successfully
+[2025-05-12 09:59:02] Fetched 2 rows from announcements query
+[2025-05-12 10:00:04] Attempting to connect to Oracle database
+[2025-05-12 10:00:04] Oracle connection successful
+[2025-05-12 10:00:04] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 10:00:04] SQL parsed successfully
+[2025-05-12 10:00:04] SQL executed successfully
+[2025-05-12 10:00:04] Fetched 2 rows from announcements query
+[2025-05-12 10:00:46] Attempting to connect to Oracle database
+[2025-05-12 10:00:46] Oracle connection successful
+[2025-05-12 10:00:46] Preparing to execute SQL: SELECT announcement_id, title, description, event_date, location, created_by, created_at, status 
+                FROM event_announcements 
+                WHERE status = 'active' AND event_date >= TRUNC(SYSDATE)
+                ORDER BY event_date ASC
+[2025-05-12 10:00:46] SQL parsed successfully
+[2025-05-12 10:00:46] SQL executed successfully
+[2025-05-12 10:00:46] Fetched 2 rows from announcements query

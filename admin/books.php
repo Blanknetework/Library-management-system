@@ -314,18 +314,6 @@ if ($conn) {
                 <form id="uploadBookForm" method="post" action="../process/process_book_upload.php">
                     <div class="space-y-4">
                         <div>
-                            <label for="student_id" class="block text-sm font-medium text-gray-700">Student ID</label>
-                            <input type="text" id="student_id" name="student_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="student_name" class="block text-sm font-medium text-gray-700">Student Name</label>
-                            <input type="text" id="student_name" name="student_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
-                            <label for="course_section" class="block text-sm font-medium text-gray-700">Course/Section</label>
-                            <input type="text" id="course_section" name="course_section" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                        </div>
-                        <div>
                             <label for="book_title" class="block text-sm font-medium text-gray-700">Book Title</label>
                             <input type="text" id="book_title" name="book_title" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
                         </div>
@@ -605,7 +593,7 @@ if ($conn) {
                     
                     // Check if all required fields are filled
                     let isValid = true;
-                    const requiredFields = ['student_id', 'student_name', 'course_section', 'book_title', 'book_condition', 'date_borrowed'];
+                    const requiredFields = ['book_title', 'book_condition', 'date_borrowed'];
                     
                     requiredFields.forEach(field => {
                         const input = document.getElementById(field);

@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once '../config.php';
 
 // Check if user is already logged in
 if(isset($_SESSION['admin_logged_in']) && $_SESSION['admin_logged_in'] === true) {
@@ -13,12 +14,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST['username'] ?? '';
     $password = $_POST['password'] ?? '';
 
+    // Handle main Admin account
     if ($username === 'Admin' && $password === 'admin123') {
         $_SESSION['admin_logged_in'] = true;
         $_SESSION['admin_username'] = $username;
+        $_SESSION['admin_role'] = 'admin';
+        
+        // Check if admin has roles in database
+        $conn = getOracleConnection();
+        if ($conn) {
+            $sql = "SELECT role FROM sys.admin_roles WHERE username = :username";
+            $stmt = oci_parse($conn, $sql);
+            if ($stmt) {
+                oci_bind_by_name($stmt, ":username", $username);
+                if (oci_execute($stmt)) {
+                    if ($row = oci_fetch_assoc($stmt)) {
+                        $_SESSION['admin_role'] = strtolower($row['ROLE']);
+                    }
+                }
+                oci_free_statement($stmt);
+            }
+            oci_close($conn);
+        }
+        
         header("Location: dashboard.php");
         exit();
-    } else {
+    } 
+    // Handle event announcer role
+    else if ($username === 'EventAnnouncer' && $password === 'event123') {
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['admin_username'] = $username;
+        $_SESSION['admin_role'] = 'event_announcer';
+        
+        // Redirect directly to event announcements page
+        header("Location: event_announcements.php");
+        exit();
+    }
+    else {
         $error = "Invalid username or password";
     }
 }
@@ -76,7 +108,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <label for="password" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg class="h-5 w-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="h-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
                         </svg>
                     </div>
