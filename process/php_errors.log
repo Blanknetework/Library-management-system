@@ -4181,3 +4181,8 @@ Stack trace:
 [12-May-2025 10:14:56 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 22
 [12-May-2025 10:14:56 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 23
 [12-May-2025 10:14:56 Europe/Berlin] PHP Deprecated:  Constant FILTER_SANITIZE_STRING is deprecated in C:\xampp\htdocs\LibraryManagementSystem\process\process_book_upload.php on line 24
+[12-May-2025 11:19:59 Europe/Berlin] PHP Warning:  oci_execute(): ORA-00942: table or view does not exist in C:\xampp\htdocs\LibraryManagementSystem\process\process_registration.php on line 79
+[12-May-2025 11:29:05 Europe/Berlin] PHP Warning:  oci_execute(): ORA-00904: &quot;STATUS&quot;: invalid identifier in C:\xampp\htdocs\LibraryManagementSystem\process\process_registration.php on line 206
+[12-May-2025 11:30:25 Europe/Berlin] PHP Warning:  oci_execute(): ORA-00904: &quot;CREATED_AT&quot;: invalid identifier in C:\xampp\htdocs\LibraryManagementSystem\process\process_registration.php on line 207
+[12-May-2025 11:31:48 Europe/Berlin] PHP Warning:  oci_execute(): ORA-00904: &quot;MIDDLE_INITIAL&quot;: invalid identifier in C:\xampp\htdocs\LibraryManagementSystem\process\process_registration.php on line 207
+[12-May-2025 11:47:44 Europe/Berlin] PHP Warning:  oci_execute(): ORA-00904: &quot;LAST_NAME&quot;: invalid identifier in C:\xampp\htdocs\LibraryManagementSystem\process\process_registration.php on line 195

@@ -66,26 +66,28 @@ if (isset($_SESSION['login_errors'])) {
             <!-- Left column for event announcements (40% width) -->
             <div class="w-full md:w-[40%] h-full flex">
                 <div class="bg-white w-full flex flex-col shadow-md">
-                    <div class="bg-blue-900 text-white text-center py-3 px-4 border-b border-blue-800">
-                        <h2 class="text-xl font-bold">Event Announcements</h2>
-                        <p class="text-sm text-blue-100">Latest library events and activities</p>
+                    <div class="bg-gradient-to-r from-blue-900 to-blue-700 text-white text-center py-4 px-5 border-b border-blue-800">
+                        <h2 class="text-xl font-bold tracking-wide">Event Announcements</h2>
+                        <p class="text-sm text-blue-100 mt-1">Latest library events and activities</p>
                     </div>
                     
                     <?php if (empty($announcements)): ?>
-                        <div class="text-center py-16 px-4 flex flex-col items-center justify-center flex-grow">
-                            <svg class="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
-                            </svg>
-                            <h3 class="text-lg font-medium text-gray-600">No upcoming events</h3>
-                            <p class="text-gray-500 mt-2">Check back later for library events and announcements.</p>
+                        <div class="text-center py-16 px-4 flex flex-col items-center justify-center flex-grow bg-gray-50">
+                            <div class="bg-white p-6 rounded-lg shadow-sm border border-gray-100 max-w-sm">
+                                <svg class="w-20 h-20 text-blue-200 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                </svg>
+                                <h3 class="text-lg font-medium text-gray-700">No upcoming events</h3>
+                                <p class="text-gray-500 mt-2">Check back later for library events and announcements.</p>
+                            </div>
                         </div>
                     <?php else: ?>
-                        <div class="overflow-y-auto flex-grow px-4 py-4" style="scrollbar-width: thin;">
+                        <div class="overflow-y-auto flex-grow p-5 bg-gray-50" style="scrollbar-width: thin;">
                             <?php foreach ($announcements as $announcement): ?>
-                                <div class="mb-4 bg-white border-l-4 border-blue-600 shadow-sm hover:shadow transition-shadow duration-300 overflow-hidden">
-                                    <div class="bg-gray-50 px-4 py-3 flex justify-between items-center border-b">
-                                        <h3 class="font-semibold text-blue-900"><?php echo htmlspecialchars($announcement['TITLE']); ?></h3>
-                                        <div class="bg-blue-100 text-blue-800 text-xs font-bold px-2 py-1 rounded-full">
+                                <div class="mb-5 bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
+                                    <div class="bg-gradient-to-r from-blue-50 to-white px-5 py-3 flex justify-between items-center border-b border-gray-100">
+                                        <h3 class="font-semibold text-blue-900 truncate mr-2"><?php echo htmlspecialchars($announcement['TITLE']); ?></h3>
+                                        <div class="bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-sm whitespace-nowrap">
                                             <?php 
                                                 $event_date = new DateTime($announcement['EVENT_DATE']);
                                                 $today = new DateTime();
@@ -101,27 +103,27 @@ if (isset($_SESSION['login_errors'])) {
                                             ?>
                                         </div>
                                     </div>
-                                    <div class="p-4">
-                                        <div class="flex items-center text-sm text-gray-500 mb-3">
-                                            <div class="flex items-center mr-4">
-                                                <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <div class="p-5">
+                                        <div class="flex flex-wrap items-center text-sm text-gray-500 mb-4">
+                                            <div class="flex items-center mr-5 mb-2">
+                                                <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                                 </svg>
-                                                <span><?php echo htmlspecialchars($announcement['EVENT_DATE']); ?></span>
+                                                <span class="font-medium"><?php echo htmlspecialchars($announcement['EVENT_DATE']); ?></span>
                                             </div>
                                             
                                             <?php if (!empty($announcement['LOCATION'])): ?>
-                                                <div class="flex items-center">
-                                                    <svg class="w-4 h-4 mr-1 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                <div class="flex items-center mb-2">
+                                                    <svg class="w-4 h-4 mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                                     </svg>
-                                                    <span><?php echo htmlspecialchars($announcement['LOCATION']); ?></span>
+                                                    <span class="font-medium"><?php echo htmlspecialchars($announcement['LOCATION']); ?></span>
                                                 </div>
                                             <?php endif; ?>
                                         </div>
                                         
-                                        <p class="text-gray-700 text-sm mb-3 leading-relaxed">
+                                        <p class="text-gray-700 text-sm mb-4 leading-relaxed border-l-2 border-blue-100 pl-3">
                                             <?php
                                                 $description = $announcement['DESCRIPTION'];
                                                 // Convert Oracle LOB to string if needed
@@ -135,7 +137,7 @@ if (isset($_SESSION['login_errors'])) {
                                         <div x-data="{ showDetails: false }">
                                             <button 
                                                 @click="showDetails = !showDetails" 
-                                                class="text-sm text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                                                class="text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium py-1 px-3 rounded-full inline-flex items-center transition-colors duration-200"
                                             >
                                                 <span x-show="!showDetails">Read more</span>
                                                 <span x-show="showDetails">Show less</span>
@@ -147,7 +149,7 @@ if (isset($_SESSION['login_errors'])) {
                                                 </svg>
                                             </button>
                                             
-                                            <div x-show="showDetails" class="mt-3 text-sm text-gray-700 bg-gray-50 p-3 rounded border-l-2 border-blue-400">
+                                            <div x-show="showDetails" class="mt-4 text-sm text-gray-700 bg-blue-50 p-4 rounded-lg border border-blue-100">
                                                 <?php 
                                                     // Convert Oracle LOB to string if needed
                                                     $full_description = $announcement['DESCRIPTION'];
@@ -169,52 +171,173 @@ if (isset($_SESSION['login_errors'])) {
             <!-- Right column for login (60% width) -->
             <div class="w-full md:w-[60%] flex flex-col items-center justify-start pt-20 md:pt-24 pl-0 md:pl-8">
                 <div class="text-center text-white mb-8">
-                    <img src="assets/images/QCU_Logo_2019.png" alt="QCU Logo" class="w-20 h-20 mx-auto mb-2">
-                    <h1 class="text-2xl font-bold mb-1">QCU Library</h1>
-                    <p class="text-sm italic">
-                        "Empowering the students of Quezon City University through knowledge<br>
-                        and resources for academic excellence."
-                    </p>
+            <img src="assets/images/QCU_Logo_2019.png" alt="QCU Logo" class="w-20 h-20 mx-auto mb-2">
+            <h1 class="text-2xl font-bold mb-1">QCU Library</h1>
+            <p class="text-sm italic">
+                "Empowering the students of Quezon City University through knowledge<br>
+                and resources for academic excellence."
+            </p>
+        </div>
+        
+        <!-- Login Form Card -->
+                <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 mt-4">
+            <div class="text-center mb-6">
+                <h2 class="text-gray-600 text-sm mb-1">WELCOME TO</h2>
+                <h1 class="text-blue-900 text-2xl font-bold mb-2">QCU LIBRARY!</h1>
+                <p class="text-gray-600 text-sm">Enter your student number to log-in</p>
                 </div>
                 
-                <!-- Login Form Card -->
-                <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 mt-4">
-                    <div class="text-center mb-6">
-                        <h2 class="text-gray-600 text-sm mb-1">WELCOME TO</h2>
-                        <h1 class="text-blue-900 text-2xl font-bold mb-2">QCU LIBRARY!</h1>
-                        <p class="text-gray-600 text-sm">Enter your student number to log-in</p>
-                        </div>
-                        
-                        <!-- Display error messages if any -->
-                        <?php if (!empty($login_errors)): ?>
-                        <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
-                            <ul class="list-disc pl-5">
-                                <?php foreach ($login_errors as $error): ?>
-                                    <li><?php echo htmlspecialchars($error); ?></li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                        <?php endif; ?>
-                        
-                    <!-- Student ID Form -->
+                <!-- Display error messages if any -->
+                <?php if (!empty($login_errors)): ?>
+                <div class="mb-4 p-3 bg-red-100 text-red-700 rounded">
+                    <ul class="list-disc pl-5">
+                        <?php foreach ($login_errors as $error): ?>
+                            <li><?php echo htmlspecialchars($error); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </div>
+                <?php endif; ?>
+                
+            <!-- Student ID Form -->
                     <form id="studentIdForm" class="space-y-4" @submit.prevent="checkStudent">
-                        <div>
-                            <input type="text" 
-                                id="student_id" 
-                                x-ref="studentIdInput"
-                                autocomplete="off" 
-                                name="student_id" 
-                                class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                                placeholder="Student Number"
-                                required>
-                        </div>
+                <div>
+                    <input type="text" 
+                           id="student_id" 
+                           x-ref="studentIdInput"
+                           autocomplete="off" 
+                           name="student_id" 
+                           class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           placeholder="Student Number"
+                           required>
+                </div>
                         <button type="submit" 
-                                class="w-full bg-blue-900 text-white font-medium rounded py-2 hover:bg-blue-800 transition duration-200">
-                            CONTINUE
-                        </button>
-                    </form>
+                        class="w-full bg-blue-900 text-white font-medium rounded py-2 hover:bg-blue-800 transition duration-200">
+                    CONTINUE
+                </button>
+            </form>
+            
+            <!-- Registration Link -->
+            <div class="text-center mt-4 pt-4 border-t border-gray-200">
+                <p class="text-gray-600 text-sm">Don't have a library account?</p>
+                <button @click="showRegistrationModal = true" 
+                        class="text-blue-600 hover:text-blue-800 text-sm font-medium mt-1">
+                    Register here
+                </button>
+            </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Registration Modal -->
+    <div x-show="showRegistrationModal" 
+         class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+         style="display: none;">
+        <div class="bg-white rounded-lg max-w-xl w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold text-blue-900">Library Account Registration</h2>
+                <button @click="showRegistrationModal = false" class="text-gray-500 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="registrationForm" class="space-y-4" @submit.prevent="submitRegistration">
+                <div>
+                    <label for="reg_student_id" class="block text-sm font-medium text-gray-700 mb-1">Student Number</label>
+                    <input type="text" 
+                           id="reg_student_id" 
+                           x-model="regStudentId"
+                           autocomplete="off"
+                           class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           placeholder="e.g., 23-2444"
+                           required>
+                </div>
+                
+                <div>
+                    <label for="reg_name" class="block text-sm font-medium text-gray-700 mb-1">Full Name (Last Name, First Name, M.I.)</label>
+                    <input type="text" 
+                           id="reg_name" 
+                           x-model="regName"
+                           autocomplete="off"
+                           class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           placeholder="e.g., Dela Cruz, Juan P."
+                           required>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="reg_course" class="block text-sm font-medium text-gray-700 mb-1">Course</label>
+                        <input type="text" 
+                               id="reg_course" 
+                               x-model="regCourse"
+                               autocomplete="off"
+                               class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                               placeholder="e.g., BSIT"
+                               required>
+                    </div>
+                    <div>
+                        <label for="reg_section" class="block text-sm font-medium text-gray-700 mb-1">Section</label>
+                        <input type="text" 
+                               id="reg_section" 
+                               x-model="regSection"
+                               autocomplete="off"
+                               class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                               placeholder="e.g., 2A"
+                               required>
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="reg_contact" class="block text-sm font-medium text-gray-700 mb-1">Contact Number</label>
+                    <input type="text" 
+                           id="reg_contact" 
+                           x-model="regContact"
+                           autocomplete="off"
+                           class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           placeholder="e.g., 09123456789"
+                           pattern="[0-9]{11}"
+                           title="Please enter a valid 11-digit phone number"
+                           required>
+                    <p class="text-xs text-gray-500 mt-1">Please enter a valid 11-digit phone number (e.g., 09123456789)</p>
+                </div>
+                
+                <div>
+                    <label for="reg_address" class="block text-sm font-medium text-gray-700 mb-1">Complete Address</label>
+                    <textarea 
+                        id="reg_address" 
+                        x-model="regAddress"
+                        autocomplete="off"
+                        class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                        placeholder="Enter your complete address"
+                        rows="2"
+                        required></textarea>
+                </div>
+                
+                <div>
+                    <label for="reg_email" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <input type="email" 
+                           id="reg_email" 
+                           x-model="regEmail"
+                           autocomplete="off"
+                           class="w-full px-4 py-2 text-gray-700 border border-gray-300 rounded focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           placeholder="e.g., juandelacruz@email.com"
+                           required>
+                </div>
+                
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" 
+                            @click="showRegistrationModal = false"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-900 text-white rounded-md hover:bg-blue-800">
+                        Register
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -428,18 +551,18 @@ if (isset($_SESSION['login_errors'])) {
                                 
                                 <!-- Search and Filter Section -->
                                 <div class="flex flex-col md:flex-row gap-4">
-                                    <!-- Search Box -->
+                                <!-- Search Box -->
                                     <div class="relative w-full md:w-2/3">
-                                        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                                            </svg>
-                                        </div>
-                                        <input type="text" 
-                                            x-model="bookSearch" 
-                                            @input="searchBooks"
-                                            class="w-full pl-12 pr-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
-                                            placeholder="Search books by title or author...">
+                                    <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <input type="text" 
+                                        x-model="bookSearch" 
+                                        @input="searchBooks"
+                                        class="w-full pl-12 pr-4 py-3 text-sm border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-150 ease-in-out"
+                                        placeholder="Search books by title or author...">
                                     </div>
                                     
                                     <!-- Filters -->
@@ -698,7 +821,7 @@ if (isset($_SESSION['login_errors'])) {
         </div>
     </div>
 
-   
+
     <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('app', () => ({
@@ -734,6 +857,14 @@ if (isset($_SESSION['login_errors'])) {
             pendingRoomRequests: [],
             conditionFilter: '',
             branchFilter: '',
+            showRegistrationModal: false,
+            regStudentId: '',
+            regName: '',
+            regCourse: '',
+            regSection: '',
+            regContact: '',
+            regAddress: '',
+            regEmail: '',
 
             // Add this method to initialize our checkStudent function
             checkStudent: function() {
@@ -1451,6 +1582,86 @@ if (isset($_SESSION['login_errors'])) {
                 const now = new Date();
                 now.setHours(now.getHours() + (hours || 1));
                 return now.toTimeString().slice(0,5);
+            },
+
+            async submitRegistration() {
+                try {
+                    // Basic client-side validation
+                    if (!this.regStudentId || !this.regName || !this.regContact || !this.regAddress || !this.regEmail) {
+                        alert('Please fill in all required fields');
+                        return;
+                    }
+                    
+                    // Validate student ID format
+                    if (!/^\d{2}-\d{4}$/.test(this.regStudentId)) {
+                        alert('Invalid student ID format. Expected: YY-XXXX (e.g., 23-2444)');
+                        return;
+                    }
+                    
+                    // Validate contact number
+                    if (!/^09\d{9}$/.test(this.regContact)) {
+                        alert('Invalid contact number. Must be 11 digits starting with 09');
+                        return;
+                    }
+                    
+                    // Show loading state
+                    const submitBtn = document.querySelector('#registrationForm button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.textContent = 'Registering...';
+                    submitBtn.disabled = true;
+                    
+                    // Send registration data to server
+                    const response = await fetch('process/process_registration.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            student_id: this.regStudentId,
+                            name: this.regName,
+                            course: this.regCourse,
+                            section: this.regSection,
+                            contact: this.regContact,
+                            address: this.regAddress,
+                            email: this.regEmail
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    // Reset loading state
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                    
+                    if (data.success) {
+                        // Show success message
+                        alert('Library account registered successfully! You can now login with your student ID.');
+                        
+                        // Reset form and close modal
+                        this.regStudentId = '';
+                        this.regName = '';
+                        this.regCourse = '';
+                        this.regSection = '';
+                        this.regContact = '';
+                        this.regAddress = '';
+                        this.regEmail = '';
+                        this.showRegistrationModal = false;
+                        
+                        // Set the student ID in the login form
+                        this.$refs.studentIdInput.value = data.data.student_id;
+                    } else {
+                        // Show error message
+                        alert('Registration failed: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Error during registration:', error);
+                    alert('An error occurred during registration. Please try again later.');
+                    
+                    // Reset loading state if error occurs
+                    const submitBtn = document.querySelector('#registrationForm button[type="submit"]');
+                    submitBtn.textContent = 'Register';
+                    submitBtn.disabled = false;
+                }
             }
         }));
     });
