@@ -91,14 +91,24 @@ if (isset($_SESSION['login_errors'])) {
                                             <?php 
                                                 $event_date = new DateTime($announcement['EVENT_DATE']);
                                                 $today = new DateTime();
-                                                $interval = $today->diff($event_date);
                                                 
-                                                if ($interval->days == 0) {
+                                                // Reset time parts to compare dates only
+                                                $event_date->setTime(0, 0, 0);
+                                                $today->setTime(0, 0, 0);
+                                                
+                                                // Calculate days difference more explicitly
+                                                $days_diff = (int)$today->diff($event_date)->format('%r%a');
+                                                
+                                                if ($days_diff === 0) {
                                                     echo "Today";
-                                                } else if ($interval->days == 1) {
+                                                } else if ($days_diff === 1) {
                                                     echo "Tomorrow";
+                                                } else if ($days_diff === -1) {
+                                                    echo "Yesterday";
+                                                } else if ($days_diff > 1) {
+                                                    echo "In " . $days_diff . " days";
                                                 } else {
-                                                    echo "In " . $interval->days . " days";
+                                                    echo abs($days_diff) . " days ago";
                                                 }
                                             ?>
                                         </div>
@@ -481,7 +491,7 @@ if (isset($_SESSION['login_errors'])) {
                                                 :class="{
                                                 'text-red-500': roomStatus[i] === 'ACTIVE' || roomStatus[i] === 'OCCUPIED',
                                                 'text-yellow-500': roomStatus[i] === 'PENDING',
-                                                'text-blue-500': roomStatus[i] === 'UPCOMING_TODAY',
+                                                'text-blue-500': roomStatus[i] === 'UPCOMING_TODAY' || roomStatus[i] === 'APPROVED',
                                                 'text-green-500': !roomStatus[i] || roomStatus[i] === 'AVAILABLE'
                                                 }"
                                             x-text="'Room ' + i + ' - ' + getRoomStatusText(roomStatus[i])">
@@ -800,9 +810,9 @@ if (isset($_SESSION['login_errors'])) {
                                                 <td class="py-1.5 px-3 text-center">
                                                 <span
                                                     :class="{
-                                                        'text-red-500': roomStatus[i] === 'ACTIVE',
+                                                        'text-red-500': roomStatus[i] === 'ACTIVE' || roomStatus[i] === 'OCCUPIED',
                                                         'text-yellow-500': roomStatus[i] === 'PENDING',
-                                                        'text-blue-500': roomStatus[i] === 'UPCOMING_TODAY',
+                                                        'text-blue-500': roomStatus[i] === 'UPCOMING_TODAY' || roomStatus[i] === 'APPROVED',
                                                         'text-green-500': !roomStatus[i] || roomStatus[i] === 'AVAILABLE'
                                                     }"
                                                     x-text="getRoomStatusText(roomStatus[i])">
@@ -960,18 +970,19 @@ if (isset($_SESSION['login_errors'])) {
                 }
                 this.roomStatus = initialRoomStatus;
                 this.roomStatusData = initialRoomStatus;
+                this.pendingRoomRequests = [];
                 
                
                 this.loadPCStatus();
                 this.loadRoomStatus();
                 
-             
+                // Set up refresh interval for PC and room status
                 this.statusRefreshInterval = setInterval(() => {
                     this.loadPCStatus();
                     this.loadRoomStatus();
-                }, 30000);
+                }, 30000);  // Every 30 seconds
 
-               
+                // Also refresh on visibility change and window focus
                 document.addEventListener('visibilitychange', () => {
                     if (!document.hidden) {
                         this.loadPCStatus();
@@ -1168,77 +1179,57 @@ if (isset($_SESSION['login_errors'])) {
 
             async loadRoomStatus() {
                 try {
-                    const response = await fetch('get_room_status.php?t=' + new Date().getTime());
+                    // Add timestamp to force fresh request (no caching)
+                    const timestamp = new Date().getTime();
+                    const response = await fetch(`get_room_status.php?nocache=${timestamp}`);
                     const data = await response.json();
                     
                     if (data.success && data.room_status_map) {
-                        // Save a copy of the current status to preserve pending states
-                        const currentStatus = { ...this.roomStatus };
+                        // Debug output to see what we're getting from server
+                        console.log(`Room status data from server (timestamp: ${timestamp}):`, data);
                         
                         // Update with server data
                         const newStatus = { ...data.room_status_map };
                         
-                        // Preserve any local PENDING states that might not be reflected on the server yet
-                            for (let i = 1; i <= 5; i++) {
-                                if (currentStatus[i] === 'PENDING' && newStatus[i] === 'AVAILABLE') {
-                                    newStatus[i] = 'PENDING';
+                        // First check direct room status (from room_reservation table)
+                        if (data.direct_room_status && Array.isArray(data.direct_room_status)) {
+                            console.log("Direct room status from DB:", data.direct_room_status);
+                            data.direct_room_status.forEach(roomData => {
+                                const roomId = parseInt(roomData.ROOM_ID);
+                                const status = roomData.STATUS ? roomData.STATUS.toUpperCase() : '';
+                                if (status === 'APPROVED' || status === 'ACTIVE') {
+                                    console.log(`Room ${roomId} is ${status} in database`);
+                                    newStatus[roomId] = 'ACTIVE';
+                                }
+                            });
+                        }
+
+                        // Also check for approved reservations in today's reservations
+                        if (Array.isArray(data.todays_reservations)) {
+                            data.todays_reservations.forEach(res => {
+                                const roomId = parseInt(res.ROOM_ID);
+                                const status = res.STATUS ? res.STATUS.toUpperCase() : '';
+                                if (status === 'APPROVED') {
+                                    console.log(`Room ${roomId} has an approved reservation today with status: ${res.STATUS}`);
+                                    // Mark as ACTIVE to ensure it shows as occupied
+                                    newStatus[roomId] = 'ACTIVE';
+                                }
+                            });
+                        }
+
+                        // Directly check room status from server map
+                        console.log("Room status map from server:", data.room_status_map);
+                        for (let i = 1; i <= 5; i++) {
+                            console.log(`Room ${i} status from server: ${data.room_status_map[i]}`);
+                            const mapStatus = data.room_status_map[i];
+                            if (mapStatus === 'ACTIVE' || mapStatus === 'APPROVED') {
+                                console.log(`Room ${i} is marked as ${mapStatus} in room_status_map`);
+                                newStatus[i] = 'ACTIVE';
                             }
                         }
                         
-                        // Apply any pending room requests from this session
-                        if (Array.isArray(this.pendingRoomRequests) && this.pendingRoomRequests.length > 0) {
-                            // Keep pending requests for up to 1 hour (3600000 ms)
-                            const now = new Date().getTime();
-                            // Filter out expired requests (older than 1 hour)
-                            this.pendingRoomRequests = this.pendingRoomRequests.filter(req => {
-                                return (now - req.timestamp) < 3600000;
-                            });
-                            
-                            // Apply remaining pending requests
-                            this.pendingRoomRequests.forEach(req => {
-                                const roomId = parseInt(req.room_id);
-                                if (roomId >= 1 && roomId <= 5) {
-                                    // Only override if not already ACTIVE or UPCOMING_TODAY
-                                    if (newStatus[roomId] !== 'ACTIVE' && newStatus[roomId] !== 'UPCOMING_TODAY') {
-                                        newStatus[roomId] = 'PENDING';
-                                    }
-                                }
-                            });
-                        }
-                        
+                        // Update the room status
                         this.roomStatus = newStatus;
-                        this.roomStatusData = { ...newStatus };
-                        this.todaysReservations = data.todays_reservations || [];
-                        
-                        // Add our pending requests to today's reservations if they're not already there
-                        if (Array.isArray(this.pendingRoomRequests) && this.pendingRoomRequests.length > 0) {
-                            this.pendingRoomRequests.forEach(req => {
-                                const roomId = parseInt(req.room_id);
-                                // Check if this request is already in todaysReservations
-                                const exists = this.todaysReservations.some(res => {
-                                    return parseInt(res.room_id) === roomId && 
-                                           res.start_time === req.start_time && 
-                                           res.end_time === req.end_time;
-                                });
-                                
-                                if (!exists) {
-                                    this.todaysReservations.push({
-                                        room_id: roomId.toString(),
-                                        status: 'Pending',
-                                        start_time: req.start_time,
-                                        end_time: req.end_time
-                                    });
-                                }
-                            });
-                        }
-                    }
-                    // Optionally, handle clearing the form if the selected room is no longer available
-                    if (this.selectedRoom && (this.roomStatus[this.selectedRoom] === 'ACTIVE' || this.roomStatus[this.selectedRoom] === 'UPCOMING_TODAY')) {
-                            this.selectedRoom = '';
-                            this.roomPurpose = '';
-                            this.roomStartTime = '';
-                            this.roomEndTime = '';
-                            alert('Selected room is no longer available. Please choose another room.');
                     }
                 } catch (error) {
                     console.error('Error loading room status:', error);
@@ -1397,6 +1388,9 @@ if (isset($_SESSION['login_errors'])) {
             },
 
             getRoomStatusText(status) {
+                // First log the status for debugging
+                console.log(`Getting status text for: ${status}`);
+                
                 switch(status) {
                     case 'ACTIVE':
                     case 'OCCUPIED':
@@ -1407,6 +1401,8 @@ if (isset($_SESSION['login_errors'])) {
                         return 'Reserved';
                     case 'PENDING':
                         return 'Pending Approval';
+                    case 'APPROVED':
+                        return 'Approved';
                     case 'PAST':
                     case 'AVAILABLE':
                     case null:

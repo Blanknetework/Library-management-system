@@ -329,16 +329,6 @@ if ($conn) {
                                 <option value="SM Library">SM Library</option>
                             </select>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="date_borrowed" class="block text-sm font-medium text-gray-700">Date Borrowed</label>
-                                <input type="date" id="date_borrowed" name="date_borrowed" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                            </div>
-                            <div>
-                                <label for="return_date" class="block text-sm font-medium text-gray-700">Return Date</label>
-                                <input type="text" id="return_date" name="return_date" value="automatically 1 day after borrowed date" disabled class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 bg-gray-100 text-gray-500">
-                            </div>
-                        </div>
                         <div class="pt-4">
                             <button type="submit" class="w-full bg-blue-800 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                 Confirm
@@ -574,15 +564,6 @@ if ($conn) {
                 }
             });
 
-            // Date borrowed logic
-            const dateBorrowed = document.getElementById('date_borrowed');
-            if (dateBorrowed) {
-                // Set default to today
-                const today = new Date();
-                const formattedDate = today.toISOString().split('T')[0];
-                dateBorrowed.value = formattedDate;
-            }
-            
             // Form submission
             if (uploadBookForm) {
                 uploadBookForm.addEventListener('submit', function(event) {
@@ -593,7 +574,7 @@ if ($conn) {
                     
                     // Check if all required fields are filled
                     let isValid = true;
-                    const requiredFields = ['book_title', 'book_condition', 'date_borrowed'];
+                    const requiredFields = ['book_title', 'book_condition'];
                     
                     requiredFields.forEach(field => {
                         const input = document.getElementById(field);
@@ -629,13 +610,6 @@ if ($conn) {
                             
                             // Reset form
                             uploadBookForm.reset();
-                            
-                            // Set date back to today
-                            if (dateBorrowed) {
-                                const today = new Date();
-                                const formattedDate = today.toISOString().split('T')[0];
-                                dateBorrowed.value = formattedDate;
-                            }
                             
                             // Close modal
                             uploadBookModal.style.display = 'none';

@@ -51,7 +51,7 @@ if ($conn) {
                    TO_CHAR(r.approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date
             FROM sys.room_reservation r
             JOIN sys.students s ON r.student_id = s.student_id
-            WHERE r.status = 'Pending'
+            WHERE UPPER(r.status) = 'PENDING'
             ORDER BY r.start_time DESC";
     $pending_stmt = oci_parse($conn, $pending_sql);
     if ($pending_stmt && oci_execute($pending_stmt)) {
@@ -82,7 +82,7 @@ if ($conn) {
                    TO_CHAR(r.approval_date, 'YYYY-MM-DD HH24:MI:SS') as approval_date
             FROM sys.room_reservation r
             JOIN sys.students s ON r.student_id = s.student_id
-            WHERE r.status != 'Pending'";
+            WHERE UPPER(r.status) != 'PENDING'";
     if (!empty($search_term)) {
         $sql .= " AND (UPPER(s.full_name) LIKE UPPER('%' || :search_term || '%') 
                  OR UPPER(s.student_id) LIKE UPPER('%' || :search_term || '%')
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     if ($reservation_id && ($action === 'approve' || $action === 'reject')) {
         $conn = getOracleConnection();
         if ($conn) {
-            $status = $action === 'approve' ? 'Approved' : 'Rejected';
+            $status = $action === 'approve' ? 'APPROVED' : 'REJECTED';
             $admin = $_SESSION['admin_username'];
             
             // First get the room_id and start_time for this reservation
@@ -148,28 +148,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                     oci_bind_by_name($stmt, ":reservation_id", $reservation_id);
                     
                     if (oci_execute($stmt)) {
-                        // If approved, update room status to ACTIVE
-                        if ($action === 'approve') {
-                            $update_room_sql = "UPDATE sys.room_status 
-                                              SET status = 'ACTIVE',
-                                                  last_updated = SYSTIMESTAMP
-                                              WHERE room_id = :room_id";
-                            $room_stmt = oci_parse($conn, $update_room_sql);
-                            oci_bind_by_name($room_stmt, ":room_id", $room_id);
-                            oci_execute($room_stmt);
-                        }
                         // If rejected, delete the reservation completely
-                        else if ($action === 'reject') {
-                            // First make sure room status is AVAILABLE
-                            $update_room_sql = "UPDATE sys.room_status 
-                                              SET status = 'AVAILABLE',
-                                                  last_updated = SYSTIMESTAMP
-                                              WHERE room_id = :room_id";
-                            $room_stmt = oci_parse($conn, $update_room_sql);
-                            oci_bind_by_name($room_stmt, ":room_id", $room_id);
-                            oci_execute($room_stmt);
-                            
-                            // Then delete the reservation completely
+                        if ($action === 'reject') {
                             $delete_sql = "DELETE FROM sys.room_reservation WHERE reservation_id = :reservation_id";
                             $delete_stmt = oci_parse($conn, $delete_sql);
                             oci_bind_by_name($delete_stmt, ":reservation_id", $reservation_id);
@@ -448,7 +428,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                                                     </td>
                                                     <td class="px-6 py-4 whitespace-nowrap">
                                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                            <?php echo $reservation['status'] === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
+                                                        <?php echo $reservation['status'] === 'Approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?>">
                                                             <?php echo htmlspecialchars($reservation['status']); ?>
                                                         </span>
                                                     </td>

@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 
 try {
     // Validate required fields
-    $required_fields = ['book_title', 'book_condition', 'date_borrowed'];
+    $required_fields = ['book_title', 'book_condition'];
     foreach ($required_fields as $field) {
         if (empty($_POST[$field])) {
             throw new Exception("Field $field is required");
@@ -20,7 +20,6 @@ try {
     // Sanitize input data
     $book_title = filter_var($_POST['book_title'], FILTER_SANITIZE_STRING);
     $book_condition = filter_var($_POST['book_condition'], FILTER_SANITIZE_STRING);
-    $date_borrowed = filter_var($_POST['date_borrowed'], FILTER_SANITIZE_STRING);
     $branch = filter_var($_POST['branch'], FILTER_SANITIZE_STRING);
     
     // Validate branch
@@ -28,8 +27,8 @@ try {
         $branch = 'Main Library'; // Default if invalid
     }
     
-    // Calculate return date (1 day after borrowed date)
-    $return_date = date('Y-m-d', strtotime($date_borrowed . ' + 1 day'));
+    // Current date for record keeping
+    $current_date = date('Y-m-d');
     
     // Connect to database
     $conn = getOracleConnection();
@@ -122,7 +121,7 @@ try {
         'data' => [
             'reference_id' => $reference_id,
             'book_title' => $book_title,
-            'date_added' => $date_borrowed,
+            'date_added' => $current_date,
             'branch' => $branch
         ]
     ]);

@@ -24,7 +24,7 @@ try {
         $active_sql = "SELECT r.*, s.full_name 
                       FROM sys.room_reservation r
                       JOIN sys.students s ON r.student_id = s.student_id
-                      WHERE r.status = 'Approved'
+                      WHERE UPPER(r.status) = 'APPROVED'
                       AND SYSTIMESTAMP BETWEEN r.start_time AND r.end_time";
         $active_stmt = oci_parse($conn, $active_sql);
         oci_execute($active_stmt);
@@ -36,7 +36,7 @@ try {
         $upcoming_sql = "SELECT r.*, s.full_name 
                         FROM sys.room_reservation r
                         JOIN sys.students s ON r.student_id = s.student_id
-                        WHERE r.status = 'Approved'
+                        WHERE UPPER(r.status) = 'APPROVED'
                         AND TRUNC(r.start_time) = TRUNC(SYSTIMESTAMP)
                         AND r.start_time > SYSTIMESTAMP";
         $upcoming_stmt = oci_parse($conn, $upcoming_sql);
@@ -49,7 +49,7 @@ try {
         $all_sql = "SELECT r.*, s.full_name 
                    FROM sys.room_reservation r
                    JOIN sys.students s ON r.student_id = s.student_id
-                   WHERE r.status IN ('Approved', 'Pending')
+                   WHERE UPPER(r.status) IN ('APPROVED', 'PENDING')
                    AND r.start_time >= SYSTIMESTAMP";
         $all_stmt = oci_parse($conn, $all_sql);
         oci_execute($all_stmt);
@@ -61,8 +61,8 @@ try {
         $pending_sql = "SELECT r.*, s.full_name 
                         FROM sys.room_reservation r
                         JOIN sys.students s ON r.student_id = s.student_id
-                        WHERE r.status = 'Pending'
-                        AND r.start_time >= SYSTIMESTAMP";
+                        WHERE UPPER(r.status) = 'PENDING'
+                        AND r.start_time >= SYSTIMESTAMP - INTERVAL '15' MINUTE";
         $pending_stmt = oci_parse($conn, $pending_sql);
         oci_execute($pending_stmt);
         while ($row = oci_fetch_assoc($pending_stmt)) {
@@ -70,9 +70,9 @@ try {
         }
         
         // Get all today's reservations (pending and approved)
-        $todays_sql = "SELECT r.room_id, r.status, TO_CHAR(r.start_time, 'HH24:MI') as start_time, TO_CHAR(r.end_time, 'HH24:MI') as end_time
+        $todays_sql = "SELECT r.room_id, r.status, r.reservation_id, TO_CHAR(r.start_time, 'HH24:MI') as start_time, TO_CHAR(r.end_time, 'HH24:MI') as end_time
                        FROM sys.room_reservation r
-                       WHERE (r.status = 'Approved' OR r.status = 'Pending')
+                       WHERE (UPPER(r.status) = 'APPROVED' OR UPPER(r.status) = 'PENDING')
                        AND TRUNC(r.start_time) = TRUNC(SYSDATE)";
         $todays_stmt = oci_parse($conn, $todays_sql);
         oci_execute($todays_stmt);
@@ -88,10 +88,12 @@ try {
             $room_status_map[$i] = 'AVAILABLE';
         }
 
-        // Mark ACTIVE
+        // Instead of querying room_status table, we'll determine status from reservations
+        // Check for active reservations first (highest priority)
         foreach ($response['active_reservations'] as $res) {
             $room_id = intval($res['ROOM_ID']);
             $room_status_map[$room_id] = 'ACTIVE';
+            error_log("Room {$room_id} marked as ACTIVE from active reservations");
         }
 
         // Mark UPCOMING_TODAY (if not already ACTIVE)
@@ -100,6 +102,20 @@ try {
             if ($room_status_map[$room_id] !== 'ACTIVE') {
                 $room_status_map[$room_id] = 'UPCOMING_TODAY';
             }
+        }
+
+        // Mark approved reservations based on current status regardless of time
+        $approved_sql = "SELECT r.room_id, r.status 
+                       FROM sys.room_reservation r 
+                       WHERE UPPER(r.status) = 'APPROVED'
+                       AND TRUNC(r.start_time) = TRUNC(SYSDATE)";
+        $approved_stmt = oci_parse($conn, $approved_sql);
+        oci_execute($approved_stmt);
+        while ($row = oci_fetch_assoc($approved_stmt)) {
+            $room_id = intval($row['ROOM_ID']);
+            // Mark approved reservations as ACTIVE to ensure they show as occupied
+            $room_status_map[$room_id] = 'ACTIVE';
+            error_log("Room {$room_id} marked as ACTIVE from approved reservation");
         }
 
         // Mark FUTURE (if not already ACTIVE or UPCOMING_TODAY)
@@ -125,6 +141,19 @@ try {
             }
         }
 
+        // Add direct status info using existing room reservations for debugging
+        $direct_status = [];
+        $direct_sql = "SELECT DISTINCT room_id, status 
+                     FROM sys.room_reservation 
+                     WHERE TRUNC(start_time) = TRUNC(SYSDATE)
+                     AND (UPPER(status) = 'APPROVED' OR UPPER(status) = 'PENDING')";
+        $direct_stmt = oci_parse($conn, $direct_sql);
+        oci_execute($direct_stmt);
+        while ($row = oci_fetch_assoc($direct_stmt)) {
+            $direct_status[] = $row;
+        }
+        $response['direct_room_status'] = $direct_status;
+
         $response['room_status_map'] = $room_status_map;
     
     echo json_encode($response);
@@ -140,7 +169,8 @@ try {
     if (isset($all_stmt)) oci_free_statement($all_stmt);
     if (isset($pending_stmt)) oci_free_statement($pending_stmt);
     if (isset($todays_stmt)) oci_free_statement($todays_stmt);
-    
+    if (isset($approved_stmt)) oci_free_statement($approved_stmt);
+    if (isset($direct_stmt)) oci_free_statement($direct_stmt);
     
     ob_end_flush();
 }
