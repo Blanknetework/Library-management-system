@@ -563,7 +563,7 @@ if ($conn) {
                     uploadBookModal.style.display = 'none';
                 }
             });
-
+            
             // Form submission
             if (uploadBookForm) {
                 uploadBookForm.addEventListener('submit', function(event) {

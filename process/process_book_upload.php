@@ -24,13 +24,13 @@ try {
     
     // Validate branch
     if (!in_array($branch, ['Main Library', 'Batasan Library', 'SM Library'])) {
-        $branch = 'Main Library'; // Default if invalid
+        $branch = 'Main Library'; 
     }
     
     // Current date for record keeping
     $current_date = date('Y-m-d');
     
-    // Connect to database
+ 
     $conn = getOracleConnection();
     if (!$conn) {
         throw new Exception("Failed to connect to database");
@@ -39,8 +39,8 @@ try {
     // Begin transaction
     oci_set_action($conn, 'process_book_upload');
     
-    // Generate a unique reference ID for the book (e.g., BK-2023-00001)
-    $ref_sql = "SELECT NVL(MAX(TO_NUMBER(REGEXP_SUBSTR(reference_id, '[0-9]+'))), 0) + 1 as next_id 
+
+    $ref_sql = "SELECT MAX(TO_NUMBER(REPLACE(REPLACE(reference_id, 'BK-', ''), '-', ''))) as max_ref 
                 FROM sys.books 
                 WHERE reference_id LIKE 'BK-%'";
     
@@ -51,9 +51,33 @@ try {
     
     oci_execute($ref_stmt);
     $ref_row = oci_fetch_assoc($ref_stmt);
-    $next_id = $ref_row['NEXT_ID'];
     
-    $reference_id = 'BK-' . date('Y') . '-' . str_pad($next_id, 5, '0', STR_PAD_LEFT);
+   
+    $next_id = ($ref_row && isset($ref_row['MAX_REF']) && $ref_row['MAX_REF']) 
+               ? (int)$ref_row['MAX_REF'] + 1 
+               : 1;
+               
+   
+    $id_part = str_pad($next_id, 5, '0', STR_PAD_LEFT); 
+    $reference_id = 'BK-' . $id_part; 
+    
+   
+    error_log("Generated reference ID: " . $reference_id . " (length: " . strlen($reference_id) . ")");
+    
+    
+    $check_ref_sql = "SELECT COUNT(*) as ref_count FROM sys.books WHERE reference_id = :reference_id";
+    $check_ref_stmt = oci_parse($conn, $check_ref_sql);
+    oci_bind_by_name($check_ref_stmt, ":reference_id", $reference_id);
+    oci_execute($check_ref_stmt);
+    $ref_count_row = oci_fetch_assoc($check_ref_stmt);
+    
+    if ($ref_count_row && $ref_count_row['REF_COUNT'] > 0) {
+        $next_id++;
+        $id_part = str_pad($next_id, 5, '0', STR_PAD_LEFT);
+        $reference_id = 'BK-' . $id_part;
+        error_log("ID already exists, modified to: " . $reference_id . " (length: " . strlen($reference_id) . ")");
+    }
+    oci_free_statement($check_ref_stmt);
     
     // Check if branch column exists
     $check_branch_sql = "SELECT column_name 
@@ -105,8 +129,15 @@ try {
     oci_bind_by_name($book_insert_stmt, ":quality", $book_condition);
     oci_bind_by_name($book_insert_stmt, ":branch", $branch);
     
-    if (!oci_execute($book_insert_stmt, OCI_NO_AUTO_COMMIT)) {
-        throw new Exception("Failed to insert book: " . oci_error($book_insert_stmt)['message']);
+    try {
+        if (!oci_execute($book_insert_stmt, OCI_NO_AUTO_COMMIT)) {
+            $error = oci_error($book_insert_stmt);
+            error_log("Database insertion error: " . json_encode($error));
+            throw new Exception("Failed to insert book: " . $error['message']);
+        }
+    } catch (Exception $e) {
+        error_log("Exception during book insertion: " . $e->getMessage());
+        throw $e;
     }
     
     // Commit all changes
@@ -139,7 +170,6 @@ try {
         'message' => $e->getMessage()
     ]);
 } finally {
-    // Clean up resources
     if (isset($ref_stmt)) oci_free_statement($ref_stmt);
     if (isset($book_insert_stmt)) oci_free_statement($book_insert_stmt);
     if (isset($conn)) oci_close($conn);

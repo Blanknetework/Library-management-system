@@ -1200,10 +1200,10 @@ if (isset($_SESSION['login_errors'])) {
                                 if (status === 'APPROVED' || status === 'ACTIVE') {
                                     console.log(`Room ${roomId} is ${status} in database`);
                                     newStatus[roomId] = 'ACTIVE';
-                                }
+                            }
                             });
                         }
-
+                        
                         // Also check for approved reservations in today's reservations
                         if (Array.isArray(data.todays_reservations)) {
                             data.todays_reservations.forEach(res => {
@@ -1225,8 +1225,8 @@ if (isset($_SESSION['login_errors'])) {
                             if (mapStatus === 'ACTIVE' || mapStatus === 'APPROVED') {
                                 console.log(`Room ${i} is marked as ${mapStatus} in room_status_map`);
                                 newStatus[i] = 'ACTIVE';
-                            }
-                        }
+                                    }
+                                }
                         
                         // Update the room status
                         this.roomStatus = newStatus;
